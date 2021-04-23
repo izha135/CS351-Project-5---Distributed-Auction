@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.Socket;
 
 public class User {
+    private String userName;
+
     public static void main(String[] args) {
         String hostName = "localhost";
         int port = 3030;
@@ -12,8 +14,15 @@ public class User {
         //     PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
         //     BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));){
 
-        PrintWriter writer = new PrintWriter(System.out, true);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        try (PrintWriter writer = new PrintWriter(System.out, true);
+             BufferedReader reader =
+                     new BufferedReader(
+                             new InputStreamReader(System.in))) {
+
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+
 
         //}
         //catch (Exception e) {
