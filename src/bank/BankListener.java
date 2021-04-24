@@ -1,5 +1,7 @@
 package bank;
 
+import common.MessageEnum;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -36,14 +38,15 @@ public class BankListener extends Thread{
 
                         while (!reader.ready()) ;
 
-                        String who = reader.readLine();
-                        if (who.equals("house")) {
-                            writer.println("login;" + houseId);
-                            houseList.add(new Bank.SocketInfo(socket, writer, reader, houseId));
+                        String line = reader.readLine();
+                        String[] split = line.split(";");
+                        if (MessageEnum.parseCommand(split[0]) == MessageEnum.HOUSE) {
+                            writer.println(MessageEnum.LOGIN + ";" + houseId);
+                            houseList.add(new Bank.SocketInfo(socket, writer, reader, houseId, ""));
                             houseId += 1;
                         } else {
-                            writer.println("login;" + userId);
-                            userList.add(new Bank.SocketInfo(socket, writer, reader, userId));
+                            writer.println(MessageEnum.LOGIN + ";" + userId);
+                            userList.add(new Bank.SocketInfo(socket, writer, reader, userId, split[1]));
                             userId += 1;
                         }
                     }
