@@ -4,13 +4,13 @@ public class Item {
     private String itemName;
     private int itemId;
     private int houseId;
-    private int minBid;
+    private double itemBid;
     private String itemDesc;
 
     public Item(String itemName, int itemId, int minBid, String itemDesc) {
         this.itemName = itemName;
         this.itemId = itemId;
-        this.minBid = minBid;
+        this.itemBid = minBid;
         this.itemDesc = itemDesc;
         this.houseId = -1;
     }
@@ -39,12 +39,12 @@ public class Item {
         this.houseId = houseId;
     }
 
-    public int getMinBid() {
-        return minBid;
+    public double getItemBid() {
+        return itemBid;
     }
 
-    public void setMinBid(int minBid) {
-        this.minBid = minBid;
+    public void setItemBid(double itemBid) {
+        this.itemBid = itemBid;
     }
 
     public String getItemDesc() {

@@ -8,6 +8,8 @@ import java.net.Socket;
 import java.util.List;
 
 public class BankListener extends Thread{
+    private static final int INITIAL_BALANCE = 1000;
+    private static final int MAX_HOUSES = 100;
     private ServerSocket serverSocket;
     private List<Bank.SocketInfo> userList;
     private List<Bank.SocketInfo> houseList;
@@ -20,7 +22,7 @@ public class BankListener extends Thread{
         this.userList = userList;
         this.houseList = houseList;
         houseId = 0;
-        userId = 0;
+        userId = MAX_HOUSES;
     }
 
     @Override
@@ -42,11 +44,13 @@ public class BankListener extends Thread{
                         String[] split = line.split(";");
                         if (MessageEnum.parseCommand(split[0]) == MessageEnum.HOUSE) {
                             writer.println(MessageEnum.LOGIN + ";" + houseId);
-                            houseList.add(new Bank.SocketInfo(socket, writer, reader, houseId, ""));
+                            bank.BankAccount account = new BankAccount(0, houseId);
+                            houseList.add(new Bank.SocketInfo(socket, writer, reader, houseId, "", account));
                             houseId += 1;
                         } else {
                             writer.println(MessageEnum.LOGIN + ";" + userId);
-                            userList.add(new Bank.SocketInfo(socket, writer, reader, userId, split[1]));
+                            bank.BankAccount account = new BankAccount(INITIAL_BALANCE, houseId);
+                            userList.add(new Bank.SocketInfo(socket, writer, reader, userId, split[1], account));
                             userId += 1;
                         }
                     }

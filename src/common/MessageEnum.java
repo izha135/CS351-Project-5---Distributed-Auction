@@ -2,12 +2,16 @@ package common;
 
 public enum MessageEnum {
     LOGIN, HOUSE, USER, GET_ITEM, ERROR, SET_HIGH_BID, HOUSE_LIST,
-    ITEMS, GET_ITEMS_FROM_BANK, REMOVE_ITEM,
+    ITEMS, GET_ITEMS_FROM_BANK, REMOVE_ITEM, ITEM_WON, AUCTION_ENDED,
     BID, ACCEPT, REJECT, OUTBID, WINNER, GET_ITEMS, HOUSE_ITEMS, GET_HOUSES, ITEM;
 
     @Override
     public String toString() {
         switch (this) {
+            case AUCTION_ENDED:
+                return "auctionEnded";
+            case ITEM_WON:
+                return "itemWon";
             case HOUSE_LIST:
                 return "houseList";
             case SET_HIGH_BID:
@@ -63,6 +67,7 @@ public enum MessageEnum {
         if(command.equals("outbid")) return OUTBID;
         if(command.equals("reject")) return REJECT;
         if(command.equals("winner")) return WINNER;
+        if(command.equals("itemWon")) return ITEM_WON;
         if(command.equals("getItem")) return GET_ITEM;
         if(command.equals("getItems")) return GET_ITEMS;
         if(command.equals("houseList")) return HOUSE_LIST;
@@ -70,6 +75,7 @@ public enum MessageEnum {
         if(command.equals("houseItems")) return HOUSE_ITEMS;
         if(command.equals("removeItem")) return REMOVE_ITEM;
         if(command.equals("setHighBid")) return SET_HIGH_BID;
+        if(command.equals("auctionEnded")) return AUCTION_ENDED;
         if(command.equals("getItemsFromBank")) return GET_ITEMS_FROM_BANK;
 
         return null;
