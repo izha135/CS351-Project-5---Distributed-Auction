@@ -1,6 +1,8 @@
 package user;
 
-public class Bid {
+import java.io.Serializable;
+
+public class Bid implements Serializable {
     private double bidAmount;
 
     public double getBidAmount() {

@@ -272,18 +272,18 @@ public class Bank{
                     new BufferedReader(
                             new InputStreamReader(Bank.class.getResourceAsStream("/initialItems.txt"))));
             //                new FileReader("resources/initialItems.txt")));
+
+            int itemId = 0;
+            while(fileScan.hasNext()){
+                String text = fileScan.nextLine();
+                String[] splitText = text.split(";");
+                Item item = new Item(splitText[0], itemId, Integer.parseInt(splitText[1]), splitText[2]);
+                itemId += 1;
+                itemList.add(item);
+            }
         }
         catch (Exception e) {
             e.printStackTrace();
-        }
-
-        int itemId = 0;
-        while(fileScan.hasNext()){
-            String text = fileScan.nextLine();
-            String[] splitText = text.split(";");
-            Item item = new Item(splitText[0], itemId, Integer.parseInt(splitText[1]), splitText[2]);
-            itemId += 1;
-            itemList.add(item);
         }
     }
 
