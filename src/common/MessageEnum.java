@@ -1,13 +1,28 @@
+/**
+ * CS 351L Project 5 - Distributed Auction Houses
+ * Pun Chhetri, Isha Chauhan, John Cooper, John Tran
+ *
+ * An enumeration of all of the possible messages able to be sent
+ */
+
 package common;
 
 public enum MessageEnum {
-    LOGIN, HOUSE, USER, GET_ITEM, ERROR, SET_HIGH_BID, HOUSE_LIST,
+    LOGIN, HOUSE, USER, GET_ITEM, ERROR, SET_HIGH_BID, HOUSE_LIST, EXIT, CAN_EXIT,
     ITEMS, GET_ITEMS_FROM_BANK, REMOVE_ITEM, ITEM_WON, AUCTION_ENDED,
     BID, ACCEPT, REJECT, OUTBID, WINNER, GET_ITEMS, HOUSE_ITEMS, GET_HOUSES, ITEM;
 
+    /**
+     * Converts all the messages to a send-able string
+     * @return The string associated with the enum
+     */
     @Override
     public String toString() {
         switch (this) {
+            case CAN_EXIT:
+                return "canExit";
+            case EXIT:
+                return "exit";
             case AUCTION_ENDED:
                 return "auctionEnded";
             case ITEM_WON:
@@ -55,8 +70,14 @@ public enum MessageEnum {
         }
     }
 
+    /**
+     * Parses the first sub-string of a passed message into the associated enum
+     * @param command The command/string to parse
+     * @return The associated enum
+     */
     public static MessageEnum parseCommand(String command) {
         if(command.equals("bid")) return BID;
+        if(command.equals("exit")) return EXIT;
         if(command.equals("user")) return USER;
         if(command.equals("item")) return ITEM;
         if(command.equals("error")) return ERROR;
@@ -67,6 +88,7 @@ public enum MessageEnum {
         if(command.equals("outbid")) return OUTBID;
         if(command.equals("reject")) return REJECT;
         if(command.equals("winner")) return WINNER;
+        if(command.equals("canExit")) return CAN_EXIT;
         if(command.equals("itemWon")) return ITEM_WON;
         if(command.equals("getItem")) return GET_ITEM;
         if(command.equals("getItems")) return GET_ITEMS;
