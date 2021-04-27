@@ -14,10 +14,16 @@ public class User {
         //     PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
         //     BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));){
 
+        // FIXME: use socket above
         try (PrintWriter writer = new PrintWriter(System.out, true);
              BufferedReader reader =
                      new BufferedReader(
                              new InputStreamReader(System.in))) {
+            // maybe incorporate GUI later...
+
+            // get the list of auction houses first
+            // FIXME: sort out the id
+            writer.write("getHouses;");
 
         } catch (IOException e) {
             System.out.println(e.getMessage());
@@ -28,5 +34,11 @@ public class User {
         //catch (Exception e) {
         //    e.printStackTrace();
         //}
+    }
+
+    private void promptInitialMessage() {
+        System.out.println();
+        System.out.println("Welcome to the Auction House simulation!");
+        System.out.println("Please ");
     }
 }
