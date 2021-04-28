@@ -13,6 +13,8 @@ import static common.MessageEnum.*;
 
 public class User {
     private String userName;
+    private static int userID;
+    private static List<HouseIDList> entireHousesList = new ArrayList<>();
 
     // FIXME: move variables out into member variables...
     public static void main(String[] args) {
@@ -31,7 +33,6 @@ public class User {
             // FIXME: maybe incorporate GUI later...
 
             // get the user id
-            int userID;
             while (true) {
                 if (reader.ready()) {
                     String userIDMessage = reader.readLine();
@@ -56,12 +57,11 @@ public class User {
                     String housesMessage = reader.readLine();
                     housesArgs =
                             MessageEnum.parseMessageArgs(housesMessage);
-                    // FIXME: do something with the houses list
                     break;
                 }
             }
 
-            // create list of house IDs
+            // get the list of items for EACH AUCTION HOUSE
             List<String> houseIDs = new ArrayList<>(housesArgs);
             for (String houseID : houseIDs) {
                 List<String> getItemArgs = new ArrayList<>();
@@ -72,9 +72,6 @@ public class User {
                                 getItemArgs);
                 writer.write(getItemsMessage);
             }
-
-            // get the list of items for EACH AUCTION HOUSE
-            List<HouseIDList> entireHousesList = new ArrayList<>();
 
             int houseCount = houseIDs.size();
             int itemListCounter = 0;
@@ -111,6 +108,8 @@ public class User {
                     break;
                 }
             }
+
+            // FIXME: do something with the houses list
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
