@@ -238,7 +238,8 @@ public class Bank{
                     userWriter.println(MessageEnum.REJECT + ";" + houseId + ";" + itemId);
                 }
                 else{
-                    // If the request is valid, check if the bid is above the current bit
+                    // If the request is valid, check if the bid is above the
+                    // current bid
                     if(itemBid < request.bidAmount && account.getRemainingBalance() >= itemBid) {
                         // Success
                         PrintWriter houseWriter = getHouse(houseId).writer;

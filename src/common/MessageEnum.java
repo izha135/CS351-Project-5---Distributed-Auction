@@ -7,6 +7,10 @@
 
 package common;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public enum MessageEnum {
     LOGIN, HOUSE, USER, GET_ITEM, ERROR, SET_HIGH_BID, HOUSE_LIST, EXIT, CAN_EXIT,
     ITEMS, GET_ITEMS_FROM_BANK, REMOVE_ITEM, ITEM_WON, AUCTION_ENDED,
@@ -101,5 +105,33 @@ public enum MessageEnum {
         if(command.equals("getItemsFromBank")) return GET_ITEMS_FROM_BANK;
 
         return null;
+    }
+
+    public static List<String> parseMessageArgs(String message) {
+        String[] messageArgs = message.split(";");
+        String command = messageArgs[0];
+
+        List<String> dummyList = Arrays.asList(messageArgs);
+        List<String> messageWithoutCommandArgs = new ArrayList<>();
+        for (MessageEnum messageEnum : values()) {
+            if (messageEnum == MessageEnum.parseCommand(command)) {
+                messageWithoutCommandArgs.addAll(dummyList);
+                messageWithoutCommandArgs.remove(0);
+                break;
+            }
+        }
+
+        return messageWithoutCommandArgs;
+    }
+
+    public static String createMessageString(MessageEnum messageEnum,
+                                             List<String> messageArgs) {
+        String message = messageArgs.toString(); // assume the messageEnum is
+        // some valid enum (internally checked)
+        for (String messageArg : messageArgs) {
+            message += ";" + messageArg;
+        }
+
+        return message;
     }
 }
