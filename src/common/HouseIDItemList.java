@@ -2,11 +2,11 @@ package common;
 
 import java.util.List;
 
-public class HouseIDList {
+public class HouseIDItemList {
     private int houseID;
     private List<Item> itemList;
 
-    public HouseIDList(int houseID, List<Item> itemList) {
+    public HouseIDItemList(int houseID, List<Item> itemList) {
         this.houseID = houseID;
         this.itemList = itemList;
     }

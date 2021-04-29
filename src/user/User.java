@@ -1,11 +1,10 @@
 package user;
 
-import common.HouseIDList;
+import common.HouseIDItemList;
 import common.Item;
 import common.MessageEnum;
 
 import java.io.*;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +13,7 @@ import static common.MessageEnum.*;
 public class User {
     private String userName;
     private static int userID;
-    private static List<HouseIDList> entireHousesList = new ArrayList<>();
+    private static List<HouseIDItemList> entireHousesList = new ArrayList<>();
 
     // FIXME: move variables out into member variables...
     public static void main(String[] args) {
@@ -98,7 +97,7 @@ public class User {
                                     itemsArgs.get(itemArgIndex + 3)));
                         }
 
-                        entireHousesList.add(new HouseIDList(Integer
+                        entireHousesList.add(new HouseIDItemList(Integer
                                 .parseInt(houseIDs.get(itemListCounter)),
                                 itemList));
 
@@ -119,6 +118,10 @@ public class User {
         //catch (Exception e) {
         //    e.printStackTrace();
         //}
+    }
+
+    private void placeBid() {
+
     }
 
     private void promptInitialMessage() {
