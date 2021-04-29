@@ -109,8 +109,11 @@ public class User {
             }
 
             // FIXME: do something with the houses list
-            // FIXME: print out the houses/items
+            // FIXME: print out the houses/items (only when using actual socket)
 
+            for (HouseIDItemList houseIDItemList : entireHousesList) {
+                System.out.println(houseIDItemList);
+            }
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }

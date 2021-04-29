@@ -18,4 +18,15 @@ public class HouseIDItemList {
     public List<Item> getItemList() {
         return itemList;
     }
+
+    @Override
+    public String toString() {
+        String currentString = "House ID: " + houseID + "\n";
+
+        for (Item item : itemList) {
+            currentString += item;
+        }
+
+        return currentString;
+    }
 }
