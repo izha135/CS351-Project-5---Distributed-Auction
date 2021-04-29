@@ -109,6 +109,8 @@ public class User {
             }
 
             // FIXME: do something with the houses list
+            // FIXME: print out the houses/items
+
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
@@ -120,7 +122,7 @@ public class User {
         //}
     }
 
-    private void placeBid() {
+    private void placeBid(int bidAmount, int itemID, int houseID) {
 
     }
 
