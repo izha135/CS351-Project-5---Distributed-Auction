@@ -56,4 +56,10 @@ public class Item implements Serializable {
     public void setItemDesc(String itemDesc) {
         this.itemDesc = itemDesc;
     }
+
+    @Override
+    public String toString() {
+        return "Item name: " + itemName + "\nItem ID: " + itemId + "\nItem " +
+                "Bid: " + itemBid + "\nItem Description: " + itemDesc + "\n";
+    }
 }
