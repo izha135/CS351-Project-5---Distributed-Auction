@@ -67,27 +67,28 @@ public class BankListener extends Thread{
                 // cause issues. If it did, we would create another thread to do the rest of this run
                 while (!reader.ready()) ;
 
-                // Block access to the two lists when there is a new socket to be added
-                synchronized (houseList) {
-                    synchronized (userList) {
-                        String line = reader.readLine();
-                        String[] split = line.split(";");
-                        // Test if the message indicates a house
-                        if (MessageEnum.parseCommand(split[0]) == MessageEnum.HOUSE) {
-                            // Houses start with a 0 account balance
-                            BankAccount account = new BankAccount(0, houseId);
-                            houseList.add(new Bank.SocketInfo(socket, writer, reader, houseId, "", account));
-                            houseId += 1;
-                            // Message house of successful login
-                            writer.println(MessageEnum.LOGIN + ";" + houseId);
-                        } else {
-                            BankAccount account = new BankAccount(INITIAL_BALANCE, houseId);
-                            userList.add(new Bank.SocketInfo(socket, writer, reader, userId, split[1], account));
-                            userId += 1;
-                            // Message user of successful login
-                            writer.println(MessageEnum.LOGIN + ";" + userId);
-                        }
+                String line = reader.readLine();
+                String[] split = line.split(";");
+                // Test if the message indicates a house
+                if (MessageEnum.parseCommand(split[0]) == MessageEnum.HOUSE) {
+                    // Houses start with a 0 account balance
+                    BankAccount account = new BankAccount(0, houseId);
+                    synchronized (houseList) {
+                        houseList.add(new Bank.SocketInfo(socket, writer, reader, houseId, "", account));
                     }
+                    System.out.println("New house has logged in with id " + houseId);
+                    houseId += 1;
+                    // Message house of successful login
+                    writer.println(MessageEnum.LOGIN + ";" + houseId);
+                } else {
+                    BankAccount account = new BankAccount(INITIAL_BALANCE, houseId);
+                    synchronized (userList) {
+                        userList.add(new Bank.SocketInfo(socket, writer, reader, userId, split[1], account));
+                    }
+                    System.out.println("New user has logged in with id " + userId);
+                    userId += 1;
+                    // Message user of successful login
+                    writer.println(MessageEnum.LOGIN + ";" + userId);
                 }
             }
             catch(Exception ex) {
