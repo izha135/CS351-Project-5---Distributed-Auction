@@ -17,6 +17,7 @@ public class UserGUIApp extends Application {
                                     "UserGUI.fxml").openStream());
             primaryStage.setScene(new Scene(root));
             primaryStage.show();
+            primaryStage.setTitle("User Window");
             root.requestFocus();
         } catch (Exception e) {
             e.printStackTrace();

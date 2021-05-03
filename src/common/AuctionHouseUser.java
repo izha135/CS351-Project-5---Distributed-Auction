@@ -2,17 +2,22 @@ package common;
 
 import java.util.List;
 
-public class HouseIDItemList {
+public class AuctionHouseUser {
     private int houseID;
+    private String houseHostName;
     private List<Item> itemList;
 
-    public HouseIDItemList(int houseID, List<Item> itemList) {
+    public AuctionHouseUser(int houseID, String houseHostName) {
         this.houseID = houseID;
-        this.itemList = itemList;
+        this.houseHostName = houseHostName;
     }
 
     public int getHouseID() {
         return houseID;
+    }
+
+    public String getHouseHostName() {
+        return houseHostName;
     }
 
     public List<Item> getItemList() {
