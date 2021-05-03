@@ -2,6 +2,7 @@ package auctionHouse;
 
 import common.BankAccount;
 import common.Item;
+import javafx.animation.Timeline;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -13,7 +14,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class AuctionHouse extends Serializable {
+public class AuctionHouse implements Serializable {
 
         private String name;
         private int publicID = 6000;
@@ -50,10 +51,11 @@ public class AuctionHouse extends Serializable {
         {
             for (int i = 0; i < 3; ++i)
             {
-                Item item = ItemDB.getRandomItem();
-                item.setItemId(itemCounter);
-                items.put(itemCounter, item);
-                itemCounter++;
+                // FIXME: implement getRandomItem() method first...
+//                Item item = ItemDB.getRandomItem();
+//                item.setItemId(itemCounter);
+//                items.put(itemCounter, item);
+//                itemCounter++;
             }
         }
 
@@ -118,24 +120,25 @@ public class AuctionHouse extends Serializable {
          *         a bidResponse REJECT Message, not this AuctionHouse's ID, the item doesn't exist here)
          *         right back to the Agent.
          */
-        public boolean placeBid(String biddingID, double amount, int itemID, int auctionHouseID)
-        {
+        public boolean placeBid(String biddingID, double amount, int itemID, int auctionHouseID) {
             //Safechecking
-            if(!(auctionHouseID==publicID))
-            {
+            if (!(auctionHouseID == publicID)) {
                 //Not the right AuctionHouse USER OUTPUT
-                System.err.println(toString()+" received a placeBid request for auctionHouseID "+auctionHouseID+" which does" +
-                        "not match its public ID "+publicID+". Returning.");
+                System.err.println(toString() + " received a placeBid request for auctionHouseID " + auctionHouseID + " which does" +
+                        "not match its public ID " + publicID + ". Returning.");
                 return false;
             }
             Item item = items.get(itemID);
-            if (item == null)
-            {
+            if (item == null) {
                 //That item isn't for sale here USER OUTPUT
                 System.err.println("Bidding ID " + biddingID + " tried to bid on " + itemID + ", which is not an item in " +
                         name + ". Returning");
                 return false;
             }
+
+            //FIXME: some default return
+            return false;
+        }
 
 
 
@@ -155,12 +158,12 @@ public class AuctionHouse extends Serializable {
          * @return true if AuctionHouse still has items
          *          false if AuctionHouse is out of items and needs to close.
          */
-        /*public boolean itemSold(int itemID)
+        public boolean itemSold(int itemID)
         {
             Item itemSold = items.remove(itemID);
             return !items.isEmpty();
             //return "Item "+itemSold.getItemName()+" has been sold for $"+itemSold.getCurrentBid()+"!";
-        }*/
+        }
 
         /*@Override
         public String toString()
@@ -218,62 +221,67 @@ public class AuctionHouse extends Serializable {
             //TODO: override hash to use in Set.
         }
 
-        /**
-         * itemDB inner Class
-         *
-         * Reads a static file to populate items into an array.
-         * Has a method getRandomItem() to grab a random copy of one of these items.
-         * This design is opposed to hosting a real SQL database and sending updates to it. Instead we have a file.
-         */
-        private static class ItemDB
+    /**
+     * itemDB inner Class
+     *
+     * Reads a static file to populate items into an array.
+     * Has a method getRandomItem() to grab a random copy of one of these items.
+     * This design is opposed to hosting a real SQL database and sending updates to it. Instead we have a file.
+     */
+    private static class ItemDB
+    {
+        private static ArrayList<Item> items;
+
+        // Static initializer that always loads the filelist
+        static
         {
-            private static ArrayList<Item> items;
+            items = new ArrayList<>();
 
-            // Static initializer that always loads the filelist
-            static
+            try
             {
-                items = new ArrayList<>();
-
-                try
+                InputStream inputFile = ItemDB.class.getResourceAsStream("ItemList.txt");
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputFile, "UTF-8"));
+                String line;
+                while ((line = reader.readLine()) != null)
                 {
-                    InputStream inputFile = ItemDB.class.getResourceAsStream("ItemList.txt");
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(inputFile, "UTF-8"));
-                    String line;
-                    while ((line = reader.readLine()) != null)
+                    // This allows for commenting in the ItemList
+                    if (!line.startsWith("//") && !line.trim().isEmpty())
                     {
-                        // This allows for commenting in the ItemList
-                        if (!line.startsWith("//") && !line.trim().isEmpty())
-                        {
-                            // The ItemList is fragile, be careful editing it.
-                            String[] elements = line.split(",");
-                            String itemName = elements[0];
-                            String imgPath = elements[1];
-                            Double minimumBid = Double.valueOf(elements[2]);
-                            items.add(new Item(itemName, imgPath, minimumBid));
-                        }
+                        // The ItemList is fragile, be careful editing it.
+                        // ***Changed some things (like itemID from imgPath)
+                        String[] elements = line.split(",");
+                        String itemName = elements[0];
+                        //String imgPath = elements[1];
+                        int itemID = Integer.valueOf(elements[1]);
+                        //Double minimumBid = Double.valueOf(elements[2]);
+                        int minimumBid = Integer.valueOf(elements[2]);
+                        String itemDesc = elements[3];
+                        items.add(new Item(itemName, itemID, minimumBid,
+                                itemDesc));
                     }
-                    inputFile.close();
                 }
-                catch (IOException e)
-                {
-                    System.out.println(e.getMessage());
-                }
+                inputFile.close();
             }
-
-            /**
-             * getRandomItem()
-             *
-             * Picks a random item from the itemList gotten from ItemList.txt and then returns a copy of it.
-             * If it were to return the actual memory object then we would have comparison conflicts elsewhere in
-             * the code base. Item name's don't have to be unique but their memory addresses have to be.
-             *
-             * @return Copy of a random item
-             */
-            private static Item getRandomItem()
+            catch (IOException e)
             {
-                return new Item(items.get(ThreadLocalRandom.current().nextInt(0, items.size())));
+                System.out.println(e.getMessage());
             }
         }
+
+//            /**
+//             * getRandomItem()
+//             *
+//             * Picks a random item from the itemList gotten from ItemList.txt and then returns a copy of it.
+//             * If it were to return the actual memory object then we would have comparison conflicts elsewhere in
+//             * the code base. Item name's don't have to be unique but their memory addresses have to be.
+//             *
+//             * @return Copy of a random item
+//             */
+//            private static Item getRandomItem()
+//            {
+//                return new Item(items.get(ThreadLocalRandom.current().nextInt(0, items.size())));
+//            }
+    }
 
        /* try {
             Socket socket = new Socket(hostName, port);
