@@ -19,7 +19,9 @@ import java.util.List;
 
 public class BankListener extends Thread{
     // The balance each user starts with
-    private static final int INITIAL_BALANCE = 1000;
+    // Will be used in the User class as well (create an identical BankAccount
+    // object with the same initial balance)
+    public static final int INITIAL_BALANCE = 1000;
     // The maximum number of houses (way higher ever going to happen)
     private static final int MAX_HOUSES = 100;
     // The open server listening for requests
@@ -81,7 +83,8 @@ public class BankListener extends Thread{
                     // Message house of successful login
                     writer.println(MessageEnum.LOGIN + ";" + houseId);
                 } else {
-                    BankAccount account = new BankAccount(INITIAL_BALANCE, houseId);
+                    BankAccount account = new BankAccount(INITIAL_BALANCE,
+                            userId);
                     synchronized (userList) {
                         userList.add(new Bank.SocketInfo(socket, writer, reader, userId, split[1], account));
                     }
