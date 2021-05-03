@@ -48,8 +48,11 @@ public class Bank{
         initializeItems();
 
         // Create a display to show the inner workings of the bank
-        display = new BankDisplay();
-        //display.createDisplay();
+        BankDisplayThread displayThread = new BankDisplayThread();
+        displayThread.start();
+        display = displayThread.bankDisplay;
+
+        System.out.println("Test");
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             // Start the listener for socket requests
