@@ -30,6 +30,8 @@ public class BankListener extends Thread{
     private List<Bank.SocketInfo> userList;
     // List of auction house sockets
     private List<Bank.SocketInfo> houseList;
+    // The display for the bank
+    private BankDisplay display;
 
     // Index of house ids (to make each unique)
     private int houseId;
@@ -41,10 +43,12 @@ public class BankListener extends Thread{
      * @param userList The list of user sockets
      * @param houseList The list of house sockets
      */
-    public BankListener(ServerSocket serverSocket, List<Bank.SocketInfo> userList, List<Bank.SocketInfo> houseList) {
+    public BankListener(ServerSocket serverSocket, List<Bank.SocketInfo> userList, List<Bank.SocketInfo> houseList,
+                        BankDisplay display) {
         this.serverSocket = serverSocket;
         this.userList = userList;
         this.houseList = houseList;
+        this.display = display;
         // House ids start at 0
         houseId = 0;
         // User ids start at MAX_HOUSES so users and houses have distinct ids
@@ -77,6 +81,9 @@ public class BankListener extends Thread{
                     BankAccount account = new BankAccount(0, houseId);
                     synchronized (houseList) {
                         houseList.add(new Bank.SocketInfo(socket, writer, reader, houseId, "", account));
+                    }
+                    synchronized (display) {
+                        display.addHouse(houseId);
                     }
                     System.out.println("New house has logged in with id " + houseId);
                     houseId += 1;

@@ -56,7 +56,7 @@ public class Bank{
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             // Start the listener for socket requests
-            listener = new BankListener(serverSocket, userList, houseList);
+            listener = new BankListener(serverSocket, userList, houseList, display);
             listener.start();
 
             System.out.println("Server is listening on port " + port);
@@ -201,6 +201,8 @@ public class Bank{
             userWriter.println(MessageEnum.ERROR + ";Invalid House Id");
         }
         else {
+            display.updateHouseItem(houseId, itemId, getUser(userId).username, bidAmount);
+
             // If found, ask the house for the given item
             PrintWriter houseWriter = getHouse(houseId).writer;
             houseWriter.println(MessageEnum.GET_ITEM + ";" + itemId);
@@ -342,6 +344,7 @@ public class Bank{
                 break;
             }
             Item item = itemList.remove(0);
+            display.addHouseItem(houseId, item);
             String itemName = item.getItemName();
             int itemId = item.getItemId();
             double itemBid = item.getItemBid();
@@ -382,6 +385,8 @@ public class Bank{
 
     private static void handleHouseAuctionEnded(int houseId, String itemName, int itemId, double itemBid,
                                                 int winningUser) {
+        display.removeHouseItem(houseId, itemId);
+
         PrintWriter houseWriter = getHouse(houseId).writer;
 
         // Transfer funds appropriately
