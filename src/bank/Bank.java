@@ -50,6 +50,7 @@ public class Bank{
         displayThread.start();
         display = displayThread.bankDisplay;
 
+        BufferedReader scan = new BufferedReader(new InputStreamReader(System.in));
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             // Start the listener for socket requests
@@ -63,7 +64,7 @@ public class Bank{
             // Check every user's and house's reader for if they have input to be parsed
             boolean run = true;
             while(run) {
-                System.out.print("");
+                //System.out.print("");
                 for(int i = 0; i < userList.size(); i++) {
                     SocketInfo socket = userList.get(i);
                     if(socket.reader.ready()) {
@@ -76,6 +77,13 @@ public class Bank{
                     if(socket.reader.ready()) {
                         text = socket.reader.readLine();
                         handleHouseCommand(text);
+                    }
+                }
+                if(scan.ready()) {
+                    String inputString = scan.readLine();
+                    if(inputString.equals("Stop")) {
+                        run = false;
+                        listener.stopThread();
                     }
                 }
             }
@@ -246,6 +254,8 @@ public class Bank{
             newUser.account.removeFunds(itemBid);
             oldUser.account.addFunds(itemBid);
 
+            display.changeUserRemaining(userId, newUser.account.getRemainingBalance());
+
             // Inform all other users of them being outbid
             for(int i = 0; i < userList.size(); i++) {
                 SocketInfo user = userList.get(i);
@@ -271,6 +281,7 @@ public class Bank{
         // Transfer funds appropriately
         BankAccount account = getUser(winningUser).account;
         account.setBalance(account.getBalance() - itemBid);
+        display.changeUserBalance(winningUser, account.getBalance());
 
         account = getHouse(houseId).account;
         account.setBalance(account.getBalance() + itemBid);
@@ -300,6 +311,7 @@ public class Bank{
 
         PrintWriter houseWriter = getHouse(houseId).writer;
         if(canExit) {
+            display.removeHouse(houseId);
             houseWriter.println(MessageEnum.CAN_EXIT);
             SocketInfo socketInfo = getHouse(houseId);
             try {

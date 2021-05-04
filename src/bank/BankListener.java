@@ -37,6 +37,8 @@ public class BankListener extends Thread{
     private int houseId;
     // Index of user ids (to make each unique)
     private int userId;
+    // Dictates if the thread should run
+    private boolean run;
 
     /**
      * @param serverSocket The server listening for incoming socket requests
@@ -53,12 +55,13 @@ public class BankListener extends Thread{
         houseId = 0;
         // User ids start at MAX_HOUSES so users and houses have distinct ids
         userId = MAX_HOUSES;
+        run = true;
     }
 
     @Override
     public void run() {
         // Always keep accepting incoming socket requests for the duration of the program
-        while(true) {
+        while(run) {
             try{
                 Socket socket = serverSocket.accept();
                 System.out.println("Accepted!");
@@ -91,10 +94,12 @@ public class BankListener extends Thread{
                     // Message house of successful login
                     writer.println(MessageEnum.LOGIN + ";" + houseId);
                 } else {
-                    BankAccount account = new BankAccount(INITIAL_BALANCE,
-                            userId);
+                    BankAccount account = new BankAccount(INITIAL_BALANCE, userId);
                     synchronized (userList) {
                         userList.add(new Bank.SocketInfo(socket, writer, reader, userId, split[1], account));
+                    }
+                    synchronized (display) {
+                        display.addUser(userId, split[1], INITIAL_BALANCE);
                     }
                     System.out.println("New user has logged in with id " + userId);
                     userId += 1;
@@ -106,5 +111,9 @@ public class BankListener extends Thread{
                 Thread.currentThread().interrupt();
             }
         }
+    }
+
+    public void stopThread() {
+        run = false;
     }
 }
