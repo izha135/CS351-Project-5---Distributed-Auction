@@ -75,7 +75,8 @@ public class BankListener extends Thread{
                 // Wait until a message indicating what kind of object is at the other end of the socket
                 // For the limited number of sockets in this project, having this (short) busy wait doesn't
                 // cause issues. If it did, we would create another thread to do the rest of this run
-                while (!reader.ready()) System.out.print("");
+                while (!reader.ready()) ;
+                //while (!reader.ready()) System.out.print("");
 
                 String line = reader.readLine();
                 String[] split = line.split(";");
