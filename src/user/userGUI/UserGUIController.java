@@ -9,6 +9,7 @@ import commonGUI.CustomItemTreeItem;
 import commonGUI.GuiStuff;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 
 import java.io.BufferedReader;
@@ -71,6 +72,8 @@ public class UserGUIController {
     private TreeView<String> houseItemTreeView;
     private CustomAuctionHouseTreeItem currentAuctionHouseTreeItem;
     private CustomAuctionHouseTreeItem currentItemTreeItem;
+    private AuctionHouseUser currentAuctionHouseUser;
+    private Item currentItemSelected;
 
     private class HouseConnectTreeCell extends TreeCell<String> {
         private ContextMenu connectContextMenu = new ContextMenu();
@@ -83,6 +86,14 @@ public class UserGUIController {
             connectMenuItem.setOnAction(event -> {
                 // send request to connect to the chosen auction house
                 TreeItem<String> treeItem = getTreeItem();
+
+                // maybe this will work...
+                if (treeItem instanceof CustomAuctionHouseTreeItem) {
+
+                } else if (treeItem instanceof CustomItemTreeItem) {
+
+                }
+
                 String[] houseTreeItemArgs = treeItem.getValue().split(" ");
                 String houseID = houseTreeItemArgs[1];
                 int parseHouseID = Integer.parseInt(houseID);
@@ -127,17 +138,35 @@ public class UserGUIController {
 
         // FIXME: now with two separate IO, maybe use a file or something
         //  (for the house) for testing...
-        initializeBankConnection();
-        setUserID();
+        System.out.println();
+        System.out.println("Initializing the bank connection...");
 
-        // print initial message
-        // FIXME: Test
+        initializeBankConnection();
+
+        System.out.println("Connection successful");
+
+        System.out.println();
         System.out.println("Printing user...");
         bankWriter.println("user;" + userID);
 
+        System.out.println();
+        System.out.println("Setting up user ID...");
+
+        setUserID();
+
+        System.out.println("Finished...user ID: " + userID);
+
+        System.out.println();
+        System.out.println("Updating the auction house list...");
+
         updateAuctionHouseList();
 
-        // FIXME: do something with the houses list
+        System.out.println("Finished...");
+        System.out.println("Auction house list:");
+        for (AuctionHouseUser auctionHouseUser : entireHousesList) {
+            System.out.println(auctionHouseUser);
+        }
+
         // default id of -1 at the root
         rootTreeItem = new CustomAuctionHouseTreeItem("List of available Auction Houses",
                 null);
@@ -155,35 +184,30 @@ public class UserGUIController {
             houseTreeItemList.add(houseTreeView);
         }
 
-//        for (int houseID : houseIDsList) {
-//            //TreeItem<String> houseTreeView = new TreeItem<>(houseID);
-//            CustomAuctionHouseTreeItem houseTreeView =
-//                    new CustomAuctionHouseTreeItem("House ID: " + houseID, houseID, auctionHouseUser);
-//            rootTreeItem.getChildren().add(houseTreeView);
-//            houseTreeItemList.add(houseTreeView);
-//        }
-
         houseItemTreeView = new TreeView<>();
         houseItemTreeView.setRoot(rootTreeItem);
-//        houseItemTreeView.setCellFactory(param -> new TreeCell<Object>(){
-//            @Override
-//            protected void updateItem(Object object, boolean empty) {
-//
-//            }
-//            HouseConnectTreeCell houseConnectTreeCell = new HouseConnectTreeCell();
-//
-//            return houseConnectTreeCell;
-//        });
+        houseItemTreeView.setCellFactory(param -> new HouseConnectTreeCell());
 
+        pane.getChildren().clear();
         pane.getChildren().add(houseItemTreeView);
 
         guiStuff = new GuiStuff(userIDAccountLabel,
-                userAccountBalanceLabel);
+                userAccountBalanceLabel,
+                currentItemSelectedLabel,
+                userBidAmountTextField,
+                bidHistoryLabel);
+
+        bidButton.setOnAction(event -> bidButtonOnAction());
 
         //}
         //catch (Exception e) {
         //    e.printStackTrace();
         //}
+    }
+
+    // FIXME
+    private void bidButtonOnAction() {
+
     }
 
     private void initializeBankConnection() {
@@ -244,10 +268,14 @@ public class UserGUIController {
                     for (Item item : houseItemList) {
                         CustomItemTreeItem customItemTreeItem =
                                 new CustomItemTreeItem(item.getTreeItemTitle(), item);
+                        Label itemBodyLabel = new Label(item.toString());
 
                         // add event handler (click) for each item
+                        itemBodyLabel.setOnMousePressed(event -> itemMousePress(
+                                event, item));
 
-                        customItemTreeItem.getChildren().add(new TreeItem<>(item.toString()));
+                        //customItemTreeItem.getChildren().add(new TreeItem<>
+                        // (item.toString()));
                         currentAuctionHouseTreeItem.getChildren().add(customItemTreeItem);
                     }
 
@@ -264,57 +292,12 @@ public class UserGUIController {
         }
     }
 
-//    private void oldUpdateAllHouseItemList() {
-//        for (String houseID : houseIDsList) {
-//            List<String> getItemArgs = new ArrayList<>();
-//            getItemArgs.add(Integer.toString(userID));
-//            getItemArgs.add(houseID);
-//            String getItemsMessage =
-//                    MessageEnum.createMessageString(GET_ITEMS,
-//                            getItemArgs);
-//            bankWriter.write(getItemsMessage);
-//        }
-//
-//        int houseCount = houseIDsList.size();
-//        int itemListCounter = 0;
-//        List<Integer> itemCountList = new ArrayList<>();
-//        while (true) {
-//            if (itemListCounter < houseCount) {
-//                if (bankReader.ready()) {
-//                    String itemsMessage = bankReader.readLine();
-//                    List<String> itemsArgs =
-//                            MessageEnum.parseMessageArgs(itemsMessage);
-//                    int currentItemCount =
-//                            Integer.parseInt(itemsArgs.get(0));
-//                    itemCountList.add(currentItemCount);
-//
-//                    itemsArgs.remove(0);
-//
-//                    List<Item> itemList = new ArrayList<>();
-//                    int itemArgIndex = 0;
-//                    for (int i = 0; i < currentItemCount; i++) {
-//                        itemArgIndex = i * 4;
-//                        itemList.add(new Item(itemsArgs.get(itemArgIndex),
-//                                Integer.parseInt(itemsArgs.get(itemArgIndex + 1)),
-//                                Integer.parseInt(itemsArgs.get(itemArgIndex + 2)),
-//                                itemsArgs.get(itemArgIndex + 3)));
-//                    }
-//
-//                    entireHousesList.add(new HouseIDItemList(Integer
-//                            .parseInt(houseIDsList.get(itemListCounter)),
-//                            itemList));
-//
-//                    itemListCounter++;
-//                }
-//            } else {
-//                break;
-//            }
-//        }
-//
-//    for (HouseIDItemList houseIDItemList : entireHousesList) {
-//        System.out.println(houseIDItemList);
-//    }
-//    }
+    private void itemMousePress(MouseEvent mouseEvent, Item item) {
+        currentItemSelected = item;
+
+        // update label
+
+    }
 
     // get the list of auction houses
     private void updateAuctionHouseList() {
