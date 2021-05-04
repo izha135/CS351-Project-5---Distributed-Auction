@@ -20,7 +20,7 @@ public class AuctionHouse implements Serializable {
         private int publicID = 6000;
         private String ahKey; // Requested and received from Auction Central
         private HashMap<Integer, Item> items; //Item ID as key for the item.
-        private HashMap<Integer, Timeline> itemTimers;
+        private HashMap<Integer, TimerThread> itemTimers;
 
         private int itemCounter = 0;
 
@@ -138,6 +138,10 @@ public class AuctionHouse implements Serializable {
 
             //FIXME: some default return
             return false;
+        }
+
+        public void timerExpired(int itemId) {
+            // FIXME: deal with this
         }
 
 
