@@ -14,6 +14,7 @@ import common.MessageEnum;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -32,8 +33,6 @@ public class Bank{
     private static List<SocketInfo> userList;
     // The list of auction house sockets and other information about them (accounts, etc.)
     private static List<SocketInfo> houseList;
-    // The list of requests by the user that need information from the auction house
-    private static List<Request> pendingRequests;
     // The global list of items so no two auction houses have the same item
     private static List<Item> itemList;
 
@@ -42,7 +41,6 @@ public class Bank{
 
         userList = new ArrayList<>();
         houseList = new ArrayList<>();
-        pendingRequests = new LinkedList<>();
         itemList = new LinkedList<>();
         // Fill the item list with all of the items within the initialItems.txt file
         initializeItems();
@@ -52,7 +50,6 @@ public class Bank{
         displayThread.start();
         display = displayThread.bankDisplay;
 
-        System.out.println("Test");
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             // Start the listener for socket requests
@@ -122,20 +119,8 @@ public class Bank{
         // Parse the command, which is always the first string
         MessageEnum command = MessageEnum.parseCommand(splitText[0]);
         switch (command) {
-            case BID:
-                int userId = Integer.parseInt(splitText[1]);
-                double bidAmount = Double.parseDouble(splitText[2]);
-                int itemId = Integer.parseInt(splitText[3]);
-                int houseId = Integer.parseInt(splitText[4]);
-                handleUserBid(userId, bidAmount, itemId, houseId);
-                break;
-            case GET_ITEMS:
-                userId = Integer.parseInt(splitText[1]);
-                houseId = Integer.parseInt(splitText[2]);
-                handleUserGetItems(userId, houseId);
-                break;
             case GET_HOUSES:
-                userId = Integer.parseInt(splitText[1]);
+                int userId = Integer.parseInt(splitText[1]);
                 handleUserGetHouses(userId);
                 break;
             case EXIT:
@@ -157,31 +142,27 @@ public class Bank{
         // Parse the command, which is always the first string
         MessageEnum command = MessageEnum.parseCommand(splitText[0]);
         switch (command) {
-            case ITEM:
-                int houseId = Integer.parseInt(splitText[1]);
-                int itemId = Integer.parseInt(splitText[3]);
-                double itemBid = Double.parseDouble(splitText[4]);
-                int itemBidUser = Integer.parseInt(splitText[5]);
-                handleHouseItem(houseId, itemId, itemBid, itemBidUser);
-                break;
             case GET_ITEMS_FROM_BANK:
-                houseId = Integer.parseInt(splitText[1]);
+                int houseId = Integer.parseInt(splitText[1]);
                 int count = Integer.parseInt(splitText[2]);
                 handleHouseGetItemsFromBank(houseId, count);
                 break;
-            case ITEMS:
-                int userId = Integer.parseInt(splitText[1]);
-                handleHouseItems(userId, splitText);
+            case VALID_BID:
+                houseId = Integer.parseInt(splitText[1]);
+                int userId = Integer.parseInt(splitText[2]);
+                double itemBid = Double.parseDouble(splitText[3]);
+                int itemId = Integer.parseInt(splitText[4]);
+                int previousHidBidUserId = Integer.parseInt(splitText[5]);
+                handleHouseValidBid(houseId, userId, itemBid, itemId, previousHidBidUserId);
                 break;
             case AUCTION_ENDED:
                 // The item being bid for has now been sold
                 houseId = Integer.parseInt(splitText[1]);
-                String itemName = splitText[2];
+                int winningUser = Integer.parseInt(splitText[2]);
                 itemId = Integer.parseInt(splitText[3]);
                 itemBid = Double.parseDouble(splitText[4]);
-                int winningUser = Integer.parseInt(splitText[5]);
-                //String itemDesc = splitText[6];
-                handleHouseAuctionEnded(houseId, itemName, itemId, itemBid, winningUser);
+                String itemName = splitText[5];
+                handleHouseAuctionEnded(houseId, winningUser, itemId, itemBid, itemName);
                 break;
             case EXIT:
                 houseId = Integer.parseInt(splitText[1]);
@@ -189,48 +170,6 @@ public class Bank{
                 break;
             default:
                 System.out.println("Invalid Command for Auction House: " + command);
-        }
-    }
-
-
-
-    private static void handleUserBid(int userId, double bidAmount, int itemId, int houseId) {
-        // Try to find the given house id
-        if(getHouse(houseId) == null) {
-            PrintWriter userWriter = getUser(userId).writer;
-            userWriter.println(MessageEnum.ERROR + ";Invalid House Id");
-        }
-        else {
-            display.updateHouseItem(houseId, itemId, getUser(userId).username, bidAmount);
-
-            // If found, ask the house for the given item
-            PrintWriter houseWriter = getHouse(houseId).writer;
-            houseWriter.println(MessageEnum.GET_ITEM + ";" + itemId);
-            // Save a record of the item bid request
-            Request request = new Request(MessageEnum.GET_ITEM);
-            request.bidAmount = bidAmount;
-            request.itemId = itemId;
-            request.userId = userId;
-            request.houseId = houseId;
-            pendingRequests.add(request);
-        }
-    }
-
-    private static void handleUserGetItems(int userId, int houseId) {
-        // Try to found the desired house
-        if(getHouse(houseId) == null) {
-            PrintWriter userWriter = getUser(userId).writer;
-            userWriter.println(MessageEnum.ERROR + ";Invalid House Id");
-        }
-        else {
-            // If found, ask the house for its items
-            PrintWriter houseWriter = getHouse(houseId).writer;
-            houseWriter.println(MessageEnum.GET_ITEMS);
-            // Save a record of the request for the items
-            Request request = new Request(MessageEnum.GET_ITEMS);
-            request.userId = userId;
-            request.houseId = houseId;
-            pendingRequests.add(request);
         }
     }
 
@@ -249,13 +188,6 @@ public class Bank{
     private static void handleUserExit(int userId) {
         boolean canExit = true;
 
-        // Check if the user has any pending requests
-        for(Request request : pendingRequests) {
-            if (request.userId == userId) {
-                canExit = false;
-                break;
-            }
-        }
         // Also check if the user is currently the highest bidder on some item
         BankAccount account = getUser(userId).account;
         if(account.getBalance() != account.getRemainingBalance()) canExit = false;
@@ -274,64 +206,6 @@ public class Bank{
         }
         else {
             userWriter.println(MessageEnum.ERROR + ";Cannot exit");
-        }
-    }
-
-    private static void handleHouseItem(int houseId, int itemId, double itemBid, int itemBidUser) {
-
-        // Find the request associated with this command
-        Request request = null;
-        for(int i = 0; i < pendingRequests.size(); i++) {
-            if (pendingRequests.get(i).itemId == itemId &&
-                    pendingRequests.get(i).houseId == houseId) {
-                request = pendingRequests.get(i);
-                pendingRequests.remove(request);
-                break;
-            }
-        }
-        PrintWriter userWriter = getUser(request.userId).writer;
-        String username = getUser(request.userId).username;
-        BankAccount account = getUser(request.userId).account;
-        // Error if there wasn't a request
-        if(request == null) {
-            System.out.println("Error: Unable to parse ITEM message");
-        }
-        else if(request.userId == itemBidUser) {
-            // Cannot bid on an item already bid on
-            userWriter.println(MessageEnum.REJECT + ";" + houseId + ";" + itemId);
-        }
-        else{
-            // If the request is valid, check if the bid is above the
-            // current bid
-            if(itemBid < request.bidAmount && account.getRemainingBalance() >= itemBid) {
-                // Success
-                PrintWriter houseWriter = getHouse(houseId).writer;
-                // Remove funds from the bidder
-                account.removeFunds(request.bidAmount);
-                for(int i = 0; i < userList.size(); i++) {
-                    // Message all non-bidding users that this item has a new highest bid
-                    if(userList.get(i).id != request.userId) {
-                        userList.get(i).writer.println(
-                                MessageEnum.OUTBID + ";" + houseId + ";" + itemId + ";" + username + ";" +
-                                        request.bidAmount);
-                    }
-                    // Message the bidding user their bid was successful
-                    else {
-                        userWriter.println(MessageEnum.ACCEPT + ";" + houseId + ";" + itemId);
-                    }
-
-                    // Add the funds back to the user outbid
-                    if(userList.get(i).id == itemBidUser) {
-                        userList.get(i).account.addFunds(itemBid);
-                    }
-                }
-                // Instruct the house to set the highest bid to be a new value
-                houseWriter.println(MessageEnum.SET_HIGH_BID + ";" + request.bidAmount + ";" + request.userId);
-            }
-            else {
-                // Reject
-                userWriter.println(MessageEnum.REJECT + ";" + houseId + ";" + itemId);
-            }
         }
     }
 
@@ -354,37 +228,42 @@ public class Bank{
         houseWriter.println(message);
     }
 
-    private static void handleHouseItems(int userId, String[] splitText) {
-        PrintWriter userWriter = getUser(userId).writer;
+    private static void handleHouseValidBid(int houseId, int userId, double itemBid, int itemId,
+                                            int previousHidBidUserId) {
+        PrintWriter houseWriter = getHouse(houseId).writer;
+        BankAccount account = getUser(userId).account;
 
-        // Find the request associated with this command and remove it
-        Request request = null;
-        for(int i = 0; i < pendingRequests.size(); i++) {
-            if (pendingRequests.get(i).userId == userId &&
-                    pendingRequests.get(i).command == MessageEnum.GET_ITEMS) {
-                request = pendingRequests.get(i);
-                pendingRequests.remove(request);
-                break;
+        String message;
+        if(account.getRemainingBalance() >= itemBid) {
+            display.updateHouseItem(houseId, itemId, getUser(userId).username, itemBid);
+
+            // Bid should be accepted
+            message = MessageEnum.ACCEPT_BID + ";" + userId + ";" + itemBid;
+
+            SocketInfo newUser = getUser(userId);
+            SocketInfo oldUser = getUser(previousHidBidUserId);
+
+            newUser.account.removeFunds(itemBid);
+            oldUser.account.addFunds(itemBid);
+
+            // Inform all other users of them being outbid
+            for(int i = 0; i < userList.size(); i++) {
+                SocketInfo user = userList.get(i);
+                if(user.id != userId) {
+                    PrintWriter writer = user.writer;
+                    writer.println(MessageEnum.OUTBID + ";" + houseId + ";" + itemId + ";" + userId + ";" + itemBid);
+                }
             }
         }
-
-        // Create a string with the list of items given by the auction house
-        String message = MessageEnum.HOUSE_ITEMS.toString();
-        int numItems = (splitText.length-2)/5;
-        for(int i = 0; i < numItems; i++) {
-            String itemName = splitText[5*i+2];
-            int itemId = Integer.parseInt(splitText[5*i+3]);
-            double itemBid = Double.parseDouble(splitText[5*i+4]);
-            //itemBidUser = Integer.valueOf(splitText[5*i+5]);
-            String itemDesc = splitText[5*i+6];
-            message += ";" + itemName + ";" + itemId + ";" + itemBid + ";" + itemDesc;
+        else {
+            // Bid should be rejected
+            message = MessageEnum.REJECT_BID + ";" + userId + ";" + itemBid;
         }
-        // Send the user this message
-        userWriter.println(message);
+        houseWriter.println(message);
     }
 
-    private static void handleHouseAuctionEnded(int houseId, String itemName, int itemId, double itemBid,
-                                                int winningUser) {
+    private static void handleHouseAuctionEnded(int houseId, int winningUser, int itemId, double itemBid,
+                                                String itemName) {
         display.removeHouseItem(houseId, itemId);
 
         PrintWriter houseWriter = getHouse(houseId).writer;
@@ -399,15 +278,15 @@ public class Bank{
         for(int i = 0; i < userList.size(); i++) {
             PrintWriter userWriter = userList.get(i).writer;
             // Message item winner of their winnings
-            if(userList.get(i).id == winningUser) {
+            /*if(userList.get(i).id == winningUser) {
                 userWriter.println(MessageEnum.WINNER + ";" + itemName + ";" + houseId + ";" + itemId
                         + ";" + itemBid);
-            }
+            }*/
             // Message all other users that this item has been sold (cannot bid on it anymore)
-            else {
+            //else {
                 userWriter.println(MessageEnum.ITEM_WON + ";" + itemName + ";" + houseId + ";" + itemId +
                         getUser(winningUser).username + ";" + itemBid);
-            }
+            //}
         }
         houseWriter.println(MessageEnum.REMOVE_ITEM + ";" + itemId);
     }
@@ -418,14 +297,6 @@ public class Bank{
      */
     private static void handleHouseExit(int houseId) {
         boolean canExit = true;
-
-        // Check if the house is currently having any pending requests
-        for(Request request1 : pendingRequests) {
-            if (request1.houseId == houseId) {
-                canExit = false;
-                break;
-            }
-        }
 
         PrintWriter houseWriter = getHouse(houseId).writer;
         if(canExit) {
@@ -454,9 +325,9 @@ public class Bank{
         try {
             fileScan = new Scanner (
                     new BufferedReader(
-            //                new InputStreamReader(Bank.class.getResourceAsStream("/initialItems.txt"))));
-                            new FileReader("resources/initialItems.txt")));
-
+                            new InputStreamReader(Bank.class.getResourceAsStream("/initialItems.txt"))));
+            //                new FileReader("../../resources/initialItems.txt")));
+            //                new FileReader("resources/initialItems.txt")));
             int itemId = 0;
             while(fileScan.hasNext()){
                 String text = fileScan.nextLine();

@@ -13,8 +13,9 @@ import java.util.List;
 
 public enum MessageEnum {
     LOGIN, HOUSE, USER, GET_ITEM, ERROR, SET_HIGH_BID, HOUSE_LIST, EXIT, CAN_EXIT,
-    ITEMS, GET_ITEMS_FROM_BANK, REMOVE_ITEM, ITEM_WON, AUCTION_ENDED,
-    BID, ACCEPT, REJECT, OUTBID, WINNER, GET_ITEMS, HOUSE_ITEMS, GET_HOUSES, ITEM;
+    ITEMS, GET_ITEMS_FROM_BANK, REMOVE_ITEM, ITEM_WON, AUCTION_ENDED, VALID_BID,
+    BID, ACCEPT, REJECT, OUTBID, WINNER, GET_ITEMS, HOUSE_ITEMS, GET_HOUSES, ITEM,
+    ACCEPT_BID, REJECT_BID;
 
     /**
      * Converts all the messages to a send-able string
@@ -23,6 +24,12 @@ public enum MessageEnum {
     @Override
     public String toString() {
         switch (this) {
+            case ACCEPT_BID:
+                return "acceptBid";
+            case REJECT_BID:
+                return "rejectBid";
+            case VALID_BID:
+                return "validBid";
             case CAN_EXIT:
                 return "canExit";
             case EXIT:
@@ -95,7 +102,10 @@ public enum MessageEnum {
         if(command.equals("canExit")) return CAN_EXIT;
         if(command.equals("itemWon")) return ITEM_WON;
         if(command.equals("getItem")) return GET_ITEM;
+        if(command.equals("validBid")) return VALID_BID;
         if(command.equals("getItems")) return GET_ITEMS;
+        if(command.equals("rejectBid")) return REJECT_BID;
+        if(command.equals("acceptBid")) return ACCEPT_BID;
         if(command.equals("houseList")) return HOUSE_LIST;
         if(command.equals("getHouses")) return GET_HOUSES;
         if(command.equals("houseItems")) return HOUSE_ITEMS;
