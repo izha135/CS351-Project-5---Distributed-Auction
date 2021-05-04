@@ -26,7 +26,14 @@ public class AuctionHouseUser {
 
     @Override
     public String toString() {
-        String currentString = "House ID: " + houseID + "\n";
+        return "House ID: " + houseID + ", house host name: "
+                + houseHostName;
+    }
+
+    public String getFullString() {
+        String currentString =
+                "House ID: " + houseID + ", house host name: "
+                        + houseHostName + "\n";
 
         for (Item item : itemList) {
             currentString += item;

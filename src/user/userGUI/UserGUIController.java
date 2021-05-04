@@ -75,44 +75,63 @@ public class UserGUIController {
     private AuctionHouseUser currentAuctionHouseUser;
     private Item currentItemSelected;
 
-    private class HouseConnectTreeCell extends TreeCell<String> {
+    private class CustomTreeCell extends TreeCell<String> {
         private ContextMenu connectContextMenu = new ContextMenu();
 
-        public HouseConnectTreeCell() {
-            MenuItem connectMenuItem = new MenuItem("Connect to this Auction " +
-                    "House");
-            connectContextMenu.getItems().add(connectMenuItem);
+        public CustomTreeCell() {
+            TreeItem<String> treeItem = getTreeItem();
 
-            connectMenuItem.setOnAction(event -> {
-                // send request to connect to the chosen auction house
-                TreeItem<String> treeItem = getTreeItem();
+            // maybe this will work...
+            if (treeItem instanceof CustomAuctionHouseTreeItem) {
+                MenuItem connectMenuItem = new MenuItem("Connect to this Auction " +
+                        "House");
+                connectContextMenu.getItems().add(connectMenuItem);
 
-                // maybe this will work...
-                if (treeItem instanceof CustomAuctionHouseTreeItem) {
+                connectMenuItem.setOnAction(event -> {
+                    // send request to connect to the chosen auction house
+                    String[] houseTreeItemArgs = treeItem.getValue().split(" ");
+                    String houseID = houseTreeItemArgs[1];
+                    int parseHouseID = Integer.parseInt(houseID);
 
-                } else if (treeItem instanceof CustomItemTreeItem) {
-
-                }
-
-                String[] houseTreeItemArgs = treeItem.getValue().split(" ");
-                String houseID = houseTreeItemArgs[1];
-                int parseHouseID = Integer.parseInt(houseID);
-
-                for (CustomAuctionHouseTreeItem houseTreeItem : houseTreeItemList) {
-                    if (houseTreeItem.checkID(parseHouseID)) {
-                        currentAuctionHouseTreeItem = houseTreeItem;
-                        break;
+                    for (CustomAuctionHouseTreeItem houseTreeItem : houseTreeItemList) {
+                        if (houseTreeItem.checkID(parseHouseID)) {
+                            currentAuctionHouseTreeItem = houseTreeItem;
+                            break;
+                        }
                     }
-                }
 
-                //FIXME: update label, get items
-                AuctionHouseUser auctionHouseUser =
-                        currentAuctionHouseTreeItem.getAuctionHouseUser();
-                String houseHostName = auctionHouseUser.getHouseHostName();
-                initializeHouseConnection(houseHostName);
+                    //FIXME: update label, get items
+                    AuctionHouseUser auctionHouseUser =
+                            currentAuctionHouseTreeItem.getAuctionHouseUser();
+                    String houseHostName = auctionHouseUser.getHouseHostName();
 
-                updateHouseItemList();
-            });
+                    System.out.println();
+                    System.out.println("Initializing auction house connection" +
+                            " with: \n" + auctionHouseUser);
+
+                    initializeHouseConnection(houseHostName);
+
+                    System.out.println("Connection successful");
+
+                    System.out.println();
+                    System.out.println("Updating the corresponding item " +
+                            "list...");
+
+                    updateHouseItemList();
+
+                    System.out.println("Update successful");
+
+                    guiStuff.updateCurrentAuctionHouseLabel(
+                            auctionHouseUser);
+                });
+            } else if (treeItem instanceof CustomItemTreeItem) {
+                CustomItemTreeItem customItemTreeItem =
+                        (CustomItemTreeItem) treeItem;
+                this.setOnMousePressed(event -> itemMousePress(event,
+                        customItemTreeItem.getItem()));
+
+                //FIXME: update label
+            }
         }
 
         @Override
@@ -168,7 +187,8 @@ public class UserGUIController {
         }
 
         // default id of -1 at the root
-        rootTreeItem = new CustomAuctionHouseTreeItem("List of available Auction Houses",
+        rootTreeItem = new CustomAuctionHouseTreeItem(
+                "List of available Auction Houses",
                 null);
         rootTreeItem.setExpanded(true);
 
@@ -186,13 +206,14 @@ public class UserGUIController {
 
         houseItemTreeView = new TreeView<>();
         houseItemTreeView.setRoot(rootTreeItem);
-        houseItemTreeView.setCellFactory(param -> new HouseConnectTreeCell());
+        houseItemTreeView.setCellFactory(param -> new CustomTreeCell());
 
         pane.getChildren().clear();
         pane.getChildren().add(houseItemTreeView);
 
         guiStuff = new GuiStuff(userIDAccountLabel,
                 userAccountBalanceLabel,
+                currentAuctionHouseLabel,
                 currentItemSelectedLabel,
                 userBidAmountTextField,
                 bidHistoryLabel);
@@ -266,17 +287,23 @@ public class UserGUIController {
 
                     // add items to the current house tree item
                     for (Item item : houseItemList) {
-                        CustomItemTreeItem customItemTreeItem =
-                                new CustomItemTreeItem(item.getTreeItemTitle(), item);
-                        Label itemBodyLabel = new Label(item.toString());
+                        CustomItemTreeItem itemRootTreeItem =
+                                new CustomItemTreeItem(
+                                        item.getTreeItemTitle(), item);
 
                         // add event handler (click) for each item
+                        // MOVED TO CustomTreeCell ABOVE
+                        Label itemBodyLabel = new Label(item.toString());
                         itemBodyLabel.setOnMousePressed(event -> itemMousePress(
                                 event, item));
 
                         //customItemTreeItem.getChildren().add(new TreeItem<>
                         // (item.toString()));
-                        currentAuctionHouseTreeItem.getChildren().add(customItemTreeItem);
+                        itemRootTreeItem.getChildren().add(
+                                new CustomItemTreeItem(
+                                        item.toString(), item));
+                        currentAuctionHouseTreeItem.getChildren().add(
+                                itemRootTreeItem);
                     }
 
                     // alert for items
