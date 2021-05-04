@@ -62,4 +62,8 @@ public class Item implements Serializable {
         return "Item name: " + itemName + "\nItem ID: " + itemId + "\nItem " +
                 "Bid: " + itemBid + "\nItem Description: " + itemDesc + "\n";
     }
+
+    public String getTreeItemTitle() {
+        return itemName + " (item ID: " + itemId + ")";
+    }
 }

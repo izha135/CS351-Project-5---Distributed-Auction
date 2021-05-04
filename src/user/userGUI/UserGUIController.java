@@ -5,6 +5,7 @@ import common.AuctionHouseUser;
 import common.Item;
 import common.MessageEnum;
 import commonGUI.CustomAuctionHouseTreeItem;
+import commonGUI.CustomItemTreeItem;
 import commonGUI.GuiStuff;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -51,7 +52,7 @@ public class UserGUIController {
     private CustomAuctionHouseTreeItem rootTreeItem;
     private List<CustomAuctionHouseTreeItem> houseTreeItemList = new ArrayList<>();
 
-    private String bankHostName = "localhost";
+    private String bankHostName = "10.147.20.205";
     private int port = 3030;
     private int userID;
     private BankAccount userBankAccount;
@@ -67,16 +68,18 @@ public class UserGUIController {
     private PrintWriter houseWriter;
     private BufferedReader houseReader;
 
+    private TreeView<String> houseItemTreeView;
     private CustomAuctionHouseTreeItem currentAuctionHouseTreeItem;
     private CustomAuctionHouseTreeItem currentItemTreeItem;
 
-    private class ConnectTreeCell extends TreeCell<String> {
+    private class HouseConnectTreeCell extends TreeCell<String> {
         private ContextMenu connectContextMenu = new ContextMenu();
 
-        public ConnectTreeCell() {
+        public HouseConnectTreeCell() {
             MenuItem connectMenuItem = new MenuItem("Connect to this Auction " +
                     "House");
             connectContextMenu.getItems().add(connectMenuItem);
+
             connectMenuItem.setOnAction(event -> {
                 // send request to connect to the chosen auction house
                 TreeItem<String> treeItem = getTreeItem();
@@ -100,10 +103,21 @@ public class UserGUIController {
                 updateHouseItemList();
             });
         }
+
+        @Override
+        public void updateItem(String item, boolean empty) {
+            super.updateItem(item, empty) ;
+
+            if (empty) {
+                setText(null);
+            } else {
+                setText(item);
+            }
+        }
     }
 
     @FXML
-    public void initialize() {
+    public void initialize() throws InterruptedException {
         //String hostName = "localhost";
         //int port = 3030;
 
@@ -115,6 +129,11 @@ public class UserGUIController {
         //  (for the house) for testing...
         initializeBankConnection();
         setUserID();
+
+        // print initial message
+        // FIXME: Test
+        System.out.println("Printing user...");
+        bankWriter.println("user;" + userID);
 
         updateAuctionHouseList();
 
@@ -144,10 +163,19 @@ public class UserGUIController {
 //            houseTreeItemList.add(houseTreeView);
 //        }
 
-        TreeView<String> treeView = new TreeView<>();
-        treeView.setRoot(rootTreeItem);
+        houseItemTreeView = new TreeView<>();
+        houseItemTreeView.setRoot(rootTreeItem);
+//        houseItemTreeView.setCellFactory(param -> new TreeCell<Object>(){
+//            @Override
+//            protected void updateItem(Object object, boolean empty) {
+//
+//            }
+//            HouseConnectTreeCell houseConnectTreeCell = new HouseConnectTreeCell();
+//
+//            return houseConnectTreeCell;
+//        });
 
-        pane.getChildren().add(treeView);
+        pane.getChildren().add(houseItemTreeView);
 
         guiStuff = new GuiStuff(userIDAccountLabel,
                 userAccountBalanceLabel);
@@ -213,7 +241,15 @@ public class UserGUIController {
                     }
 
                     // add items to the current house tree item
+                    for (Item item : houseItemList) {
+                        CustomItemTreeItem customItemTreeItem =
+                                new CustomItemTreeItem(item.getTreeItemTitle(), item);
 
+                        // add event handler (click) for each item
+
+                        customItemTreeItem.getChildren().add(new TreeItem<>(item.toString()));
+                        currentAuctionHouseTreeItem.getChildren().add(customItemTreeItem);
+                    }
 
                     // alert for items
                     Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
