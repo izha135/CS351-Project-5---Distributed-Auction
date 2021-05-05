@@ -15,7 +15,7 @@ import java.util.List;
 
 public class AuctionHouse {
 
-    private static int port;
+    private static int bankPort, userPort;
     private static int ahId; // Requested and received from Auction Central
     private static HashMap<Integer, Item> items; //Item ID as key for the item.
     private static HashMap<Integer, TimerThread> itemTimers;
@@ -34,13 +34,14 @@ public class AuctionHouse {
         itemTimers = new HashMap<>();
         userList = new LinkedList<>();
         String hostName = args[0];
-        port = 3030;
+        bankPort = 3030;
+        userPort = 3031;
 
         String message;
         String[] split;
         ServerSocket server = null;
         try {
-            server = new ServerSocket(port);
+            server = new ServerSocket(userPort);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -48,7 +49,7 @@ public class AuctionHouse {
         AuctionHouseListener listener = new AuctionHouseListener(server, userList);
         listener.start();
 
-        try (Socket socket = new Socket(hostName, port);
+        try (Socket socket = new Socket(hostName, bankPort);
              PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
              BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))){
 
@@ -311,12 +312,11 @@ public class AuctionHouse {
             // Split will have all the elements from a ITEMS list from the bank
             // It can be checked that split[0] is ITEMS or not
 
-            for (int i = 0; i < 3; ++i) {
-                String itemName = split[5*i+3];
-                int itemId = Integer.parseInt(split[5*i+4]);
-                double itemBid = Double.parseDouble(split[5*i+5]);
-                //int bidUserId = Integer.parseInt(split[5*i+6]);
-                String itemDesc = split[5*i+7];
+            for (int i = 0; i < 3; i++) {
+                String itemName = split[4*i+3];
+                int itemId = Integer.parseInt(split[4*i+4]);
+                double itemBid = Double.parseDouble(split[4*i+5]);
+                String itemDesc = split[4*i+6];
                 Item item = new Item(itemName, itemId, itemBid, itemDesc);
                 //item.setBidderId(bidUserId);
                 items.put(itemId, item);

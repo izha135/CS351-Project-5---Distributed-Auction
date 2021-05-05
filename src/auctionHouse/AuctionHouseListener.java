@@ -23,7 +23,7 @@ public class AuctionHouseListener extends Thread{
 
     @Override
     public void run() {
-        while(true) {
+        while(run) {
             try {
                 Socket socket = server.accept();
                 System.out.println("Accepted user socket");
