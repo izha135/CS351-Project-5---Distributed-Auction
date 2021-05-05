@@ -1,28 +1,35 @@
 package commonGUI;
 
 import common.AuctionHouseUser;
+import common.Item;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 public class GuiStuff {
     private Label userIDAccountLabel;
     private Label userAccountBalanceLabel;
+    private Label userBlockAmountLabel;
     private Label currentAuctionHouseLabel;
     private Label currentItemSelectedLabel;
     private TextField userBidAmountTextField;
     private Label bidHistoryLabel;
+    private TextArea bidHistoryTextArea;
 
     private CustomLabel userIDAccountCustomLabel;
     private CustomLabel userAccountBalanceCustomLabel;
+    private CustomLabel userBlockAmountCustomLabel;
     private CustomLabel currentAuctionHouseCustomLabel;
     private CustomLabel currentItemSelectedCustomLabel;
     private CustomLabel bidHistoryCustomLabel;
 
     public GuiStuff(Label userIDAccountLabel, Label userAccountBalanceLabel,
                     Label currentAuctionHouseLabel, Label currentItemSelectedLabel,
-                    TextField userBidAmountTextField, Label bidHistoryLabel) {
+                    TextField userBidAmountTextField, Label bidHistoryLabel,
+                    TextArea bidHistoryTextArea, Label userBlockAmountLabel) {
         this.userIDAccountLabel = userIDAccountLabel;
         this.userAccountBalanceLabel = userAccountBalanceLabel;
+        this.userBlockAmountLabel = userBlockAmountLabel;
         this.currentAuctionHouseLabel = currentAuctionHouseLabel;
         this.currentItemSelectedLabel = currentItemSelectedLabel;
         this.userBidAmountTextField = userBidAmountTextField;
@@ -31,11 +38,13 @@ public class GuiStuff {
         userIDAccountCustomLabel = new CustomLabel(userIDAccountLabel);
         userAccountBalanceCustomLabel =
                 new CustomLabel(userAccountBalanceLabel);
+        userBlockAmountCustomLabel = new CustomLabel(userBlockAmountLabel);
         currentItemSelectedCustomLabel =
                 new CustomLabel(currentItemSelectedLabel);
         bidHistoryCustomLabel = new CustomLabel(bidHistoryLabel);
     }
 
+    // shouldn't be needed except for the initial startup...
     public void updateUserIDAccountLabel(int userID) {
         userIDAccountCustomLabel.updateLabel(
                 Integer.toString(userID));
@@ -43,7 +52,32 @@ public class GuiStuff {
     }
 
     public void updateUserAccountBalanceLabel(double bidAmount) {
+        userAccountBalanceCustomLabel.updateLabel(
+                Double.toString(bidAmount));
+        userAccountBalanceLabel.setText(
+                userAccountBalanceCustomLabel.getText());
+    }
 
+    public void updateUserBlockAmountLabel(double bidAmount,
+                                           boolean initialBid) {
+        double blockAmount;
+        if (userBlockAmountCustomLabel.getOutputMessage().isEmpty()) {
+            blockAmount = 0.0;
+        } else {
+            blockAmount =
+                    Double.parseDouble(
+                            userBlockAmountCustomLabel.getOutputMessage());
+        }
+
+        if (initialBid) {
+            blockAmount += bidAmount;
+        } else {
+            blockAmount -= bidAmount;
+        }
+
+        userBlockAmountCustomLabel.updateLabel(
+                Double.toString(blockAmount));
+        userBlockAmountLabel.setText(userBlockAmountCustomLabel.getText());
     }
 
     public void updateCurrentAuctionHouseLabel(
@@ -54,15 +88,28 @@ public class GuiStuff {
                 currentAuctionHouseCustomLabel.getText());
     }
 
-    public void updateCurrentItemSelectedLabel() {
-
+    public void updateCurrentItemSelectedLabel(Item item) {
+        currentItemSelectedCustomLabel.updateLabel(
+                item.getTreeItemTitle());
+        currentItemSelectedLabel.setText(
+                currentAuctionHouseCustomLabel.getText());
     }
 
     public double parseUserBidAmountTextField() {
-        return 0.0;
+        return Double.parseDouble(
+                userBidAmountTextField.getText());
     }
 
+    // FIXME: remove and replace with the TextArea...
     public void updateBidHistoryLabel() {
 
+    }
+
+    public void updateBidHistoryTextArea(String bidEntry) {
+        String currentBidHistory = bidHistoryTextArea.getText();
+        currentBidHistory += bidEntry + "\n";
+        // FIXME: don't know how new line will affect the text area...
+
+        bidHistoryTextArea.setText(currentBidHistory);
     }
 }

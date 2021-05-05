@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -15,6 +16,7 @@
          <children>
             <Label fx:id="userIDAccountLabel" text="User/Account #" />
             <Label fx:id="userAccountBalanceLabel" text="User Account Balance: $" />
+            <Label fx:id="userBlockAmountLabel" text="Blocked Amount from Balance: $" />
          </children>
       </VBox>
    </top>
@@ -34,6 +36,7 @@
                </children>
             </HBox>
             <Label fx:id="bidHistoryLabel" text="Bid History:" wrapText="true" />
+            <TextArea fx:id="bidHistoryTextArea" prefHeight="200.0" prefWidth="200.0" wrapText="true" />
          </children>
          <padding>
             <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />

@@ -1,9 +1,6 @@
 package user.userGUI;
 
-import common.BankAccount;
-import common.AuctionHouseUser;
-import common.Item;
-import common.MessageEnum;
+import common.*;
 import commonGUI.CustomAuctionHouseTreeItem;
 import commonGUI.CustomItemTreeItem;
 import commonGUI.GuiStuff;
@@ -11,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import user.Bid;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,11 +16,11 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import static common.MessageEnum.GET_HOUSES;
 import static bank.BankListener.*;
-import static common.MessageEnum.GET_ITEMS;
+import static common.MessageEnum.*;
 
 public class UserGUIController {
     @FXML
@@ -33,6 +31,9 @@ public class UserGUIController {
 
     @FXML
     Label userAccountBalanceLabel;
+
+    @FXML
+    Label userBlockAmountLabel;
 
     @FXML
     Label currentAuctionHouseLabel;
@@ -48,6 +49,9 @@ public class UserGUIController {
 
     @FXML
     Label bidHistoryLabel;
+
+    @FXML
+    TextArea bidHistoryTextArea;
 
     private GuiStuff guiStuff;
     private CustomAuctionHouseTreeItem rootTreeItem;
@@ -100,7 +104,7 @@ public class UserGUIController {
                         }
                     }
 
-                    //FIXME: update label, get items
+                    //TODO: update label, get items
                     AuctionHouseUser auctionHouseUser =
                             currentAuctionHouseTreeItem.getAuctionHouseUser();
                     String houseHostName = auctionHouseUser.getHouseHostName();
@@ -127,10 +131,11 @@ public class UserGUIController {
             } else if (treeItem instanceof CustomItemTreeItem) {
                 CustomItemTreeItem customItemTreeItem =
                         (CustomItemTreeItem) treeItem;
+                Item item = customItemTreeItem.getItem();
                 this.setOnMousePressed(event -> itemMousePress(event,
-                        customItemTreeItem.getItem()));
+                        item));
 
-                //FIXME: update label
+                guiStuff.updateCurrentItemSelectedLabel(item);
             }
         }
 
@@ -175,6 +180,19 @@ public class UserGUIController {
 
         System.out.println("Finished...user ID: " + userID);
 
+        // default id of -1 at the root
+        rootTreeItem = new CustomAuctionHouseTreeItem(
+                "List of available Auction Houses",
+                null);
+        rootTreeItem.setExpanded(true);
+
+        houseItemTreeView = new TreeView<>();
+        houseItemTreeView.setRoot(rootTreeItem);
+        houseItemTreeView.setCellFactory(param -> new CustomTreeCell());
+
+        //pane.getChildren().clear();
+        pane.getChildren().add(houseItemTreeView);
+
         System.out.println();
         System.out.println("Updating the auction house list...");
 
@@ -186,14 +204,26 @@ public class UserGUIController {
             System.out.println(auctionHouseUser);
         }
 
-        // default id of -1 at the root
-        rootTreeItem = new CustomAuctionHouseTreeItem(
-                "List of available Auction Houses",
-                null);
-        rootTreeItem.setExpanded(true);
+        guiStuff = new GuiStuff(userIDAccountLabel,
+                userAccountBalanceLabel,
+                currentAuctionHouseLabel,
+                currentItemSelectedLabel,
+                userBidAmountTextField,
+                bidHistoryLabel, bidHistoryTextArea, userBlockAmountLabel);
 
+        bidButton.setOnAction(event -> bidButtonOnAction(
+        ));
+
+        //}
+        //catch (Exception e) {
+        //    e.printStackTrace();
+        //}
+    }
+
+    private void updateHouseItemListTreeView() {
         houseTreeItemList.clear();
 
+        rootTreeItem.getChildren().clear();
         for (AuctionHouseUser auctionHouseUser : entireHousesList) {
             //TreeItem<String> houseTreeView = new TreeItem<>(houseID);
             int houseID = auctionHouseUser.getHouseID();
@@ -203,32 +233,101 @@ public class UserGUIController {
             rootTreeItem.getChildren().add(houseTreeView);
             houseTreeItemList.add(houseTreeView);
         }
-
-        houseItemTreeView = new TreeView<>();
-        houseItemTreeView.setRoot(rootTreeItem);
-        houseItemTreeView.setCellFactory(param -> new CustomTreeCell());
-
-        pane.getChildren().clear();
-        pane.getChildren().add(houseItemTreeView);
-
-        guiStuff = new GuiStuff(userIDAccountLabel,
-                userAccountBalanceLabel,
-                currentAuctionHouseLabel,
-                currentItemSelectedLabel,
-                userBidAmountTextField,
-                bidHistoryLabel);
-
-        bidButton.setOnAction(event -> bidButtonOnAction());
-
-        //}
-        //catch (Exception e) {
-        //    e.printStackTrace();
-        //}
     }
 
-    // FIXME
+    // TODO: implement
     private void bidButtonOnAction() {
+        if (currentItemSelected == null) {
+            Alert invalidItemSelectedAlert = new Alert(Alert.AlertType.ERROR);
+            invalidItemSelectedAlert.setTitle("Invalid Item selected");
+            invalidItemSelectedAlert.setContentText("Please select an item before making a bid");
 
+            invalidItemSelectedAlert.show();
+            return;
+        }
+
+        double bidAmount = Double.parseDouble(
+                userBidAmountTextField.getText());
+        int itemID = currentItemSelected.getItemId();
+        int houseID = currentAuctionHouseUser.getHouseID();
+
+        List<String> bidArgs = Arrays.asList(Integer.toString(userID),
+                Double.toString(bidAmount),
+                Integer.toString(itemID),
+                Integer.toString(houseID));
+
+        String bidMessage = MessageEnum.createMessageString(BID,
+                bidArgs);
+
+        houseWriter.println(bidMessage);
+
+//        String bidReturnMessage;
+//        while (true) {
+//            try {
+//                if (houseReader.ready()) {
+//                    bidReturnMessage = houseReader.readLine();
+//                    break;
+//                }
+//            } catch (IOException e) {
+//                System.out.println(e.getMessage());
+//            }
+//        }
+
+        FullMessage bidFullMessage =
+                getFullMessageFromReader(houseReader);
+        MessageEnum bidMessageEnum =
+                bidFullMessage.getMessageEnum();
+
+        Alert bidStatusAlert;
+        Bid bid;
+        switch (bidMessageEnum) {
+            case VALID_BID:
+                bidStatusAlert =
+                        new Alert(
+                                Alert.AlertType.CONFIRMATION);
+                bidStatusAlert.setTitle(bidMessageEnum.name());
+                bidStatusAlert.setContentText("Your bid of $"
+                        + bidAmount + " on item "
+                        + currentItemSelected.getTreeItemTitle()
+                        + " was accepted!");
+
+                userBankAccount.removeFunds(bidAmount);
+
+                guiStuff.updateUserAccountBalanceLabel(bidAmount);
+                guiStuff.updateUserBlockAmountLabel(bidAmount,
+                        true);
+
+                bid = new Bid(bidAmount, currentItemSelected,
+                        bidMessageEnum);
+                guiStuff.updateBidHistoryTextArea(bid.toString());
+                break;
+            case REJECT:
+                bidStatusAlert =
+                        new Alert(Alert.AlertType.WARNING);
+                bidStatusAlert.setTitle(bidMessageEnum.name());
+                bidStatusAlert.setContentText("Sorry, your bid of $"
+                        + bidAmount + " on item "
+                        + currentItemSelected.getTreeItemTitle()
+                        + " was rejected...Better luck next time!");
+
+                bid = new Bid(bidAmount, currentItemSelected,
+                        bidMessageEnum);
+                guiStuff.updateBidHistoryTextArea(bid.toString());
+                break;
+            default:
+                bidStatusAlert =
+                        new Alert(Alert.AlertType.ERROR);
+                bidStatusAlert.setTitle(bidMessageEnum.name());
+                bidStatusAlert.setContentText("System error..." +
+                        "Wrong message given by network...");
+
+                bid = new Bid(bidAmount, currentItemSelected,
+                        ERROR);
+                guiStuff.updateBidHistoryTextArea(bid.toString());
+                break;
+        }
+
+        bidStatusAlert.show();
     }
 
     private void initializeBankConnection() {
@@ -238,10 +337,6 @@ public class UserGUIController {
                     true);
             bankReader = new BufferedReader(
                     new InputStreamReader(bankSocket.getInputStream()));
-
-            // account ID is the same as the user ID
-            userBankAccount = new BankAccount(INITIAL_BALANCE,
-                    userID);
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
@@ -264,66 +359,72 @@ public class UserGUIController {
         houseWriter.write(MessageEnum.createMessageString(GET_ITEMS,
                 new ArrayList<>()));
 
-        while (true) {
-            try {
-                if (houseReader.ready()) {
-                    String itemsMessage = houseReader.readLine();
-                    List<String> itemsArgsList =
-                            MessageEnum.parseMessageArgs(itemsMessage);
-                    int houseID = Integer.parseInt(itemsArgsList.get(0));
-                    int itemCount = Integer.parseInt(itemsArgsList.get(1));
+//        String itemsMessage;
+//        while (true) {
+//            try {
+//                if (houseReader.ready()) {
+//                    itemsMessage = houseReader.readLine();
+//                    break;
+//                }
+//            } catch (IOException e) {
+//                System.out.println(e.getMessage());
+//            }
+//        }
 
-                    itemsArgsList.remove(0);
-                    itemsArgsList.remove(0);
+        FullMessage houseItemListFullMessage =
+                getFullMessageFromReader(houseReader);
+        List<String> houseItemListArgsList =
+                houseItemListFullMessage.getMessageArgs();
+        int houseID = Integer.parseInt(houseItemListArgsList.get(0));
+        int itemCount = Integer.parseInt(houseItemListArgsList.get(1));
 
-                    int itemArgIndex = 0;
-                    for (int i = 0; i < itemCount; i++) {
-                        itemArgIndex = i * 4;
-                        houseItemList.add(new Item(itemsArgsList.get(itemArgIndex),
-                                Integer.parseInt(itemsArgsList.get(itemArgIndex + 1)),
-                                Integer.parseInt(itemsArgsList.get(itemArgIndex + 2)),
-                                itemsArgsList.get(itemArgIndex + 3)));
-                    }
+        houseItemListArgsList.remove(0);
+        houseItemListArgsList.remove(0);
 
-                    // add items to the current house tree item
-                    for (Item item : houseItemList) {
-                        CustomItemTreeItem itemRootTreeItem =
-                                new CustomItemTreeItem(
-                                        item.getTreeItemTitle(), item);
-
-                        // add event handler (click) for each item
-                        // MOVED TO CustomTreeCell ABOVE
-                        Label itemBodyLabel = new Label(item.toString());
-                        itemBodyLabel.setOnMousePressed(event -> itemMousePress(
-                                event, item));
-
-                        //customItemTreeItem.getChildren().add(new TreeItem<>
-                        // (item.toString()));
-                        itemRootTreeItem.getChildren().add(
-                                new CustomItemTreeItem(
-                                        item.toString(), item));
-                        currentAuctionHouseTreeItem.getChildren().add(
-                                itemRootTreeItem);
-                    }
-
-                    // alert for items
-                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                    alert.setTitle("Items Notification");
-                    alert.setContentText("Successfully initialized " + itemCount +
-                            " items from house id: " + houseID);
-                    break;
-                }
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
+        int itemArgIndex = 0;
+        for (int i = 0; i < itemCount; i++) {
+            itemArgIndex = i * 4;
+            houseItemList.add(new Item(houseItemListArgsList.get(itemArgIndex),
+                    Integer.parseInt(houseItemListArgsList.get(itemArgIndex + 1)),
+                    Integer.parseInt(houseItemListArgsList.get(itemArgIndex + 2)),
+                    houseItemListArgsList.get(itemArgIndex + 3)));
         }
+
+        // add items to the current house tree item
+        for (Item item : houseItemList) {
+            CustomItemTreeItem itemRootTreeItem =
+                    new CustomItemTreeItem(
+                            item.getTreeItemTitle(), item);
+
+            // add event handler (click) for each item
+            // MOVED TO CustomTreeCell ABOVE
+            // FIXME: remove label
+//                        Label itemBodyLabel = new Label(item.toString());
+//                        itemBodyLabel.setOnMousePressed(event -> itemMousePress(
+//                                event, item));
+
+            //customItemTreeItem.getChildren().add(new TreeItem<>
+            // (item.toString()));
+            itemRootTreeItem.getChildren().add(
+                    new CustomItemTreeItem(
+                            item.toString(), item));
+            currentAuctionHouseTreeItem.getChildren().add(
+                    itemRootTreeItem);
+        }
+
+        // alert for items
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Items Notification");
+        alert.setContentText("Successfully initialized " + itemCount +
+                " items from house id: " + houseID);
+
+        alert.show();
+
+        updateHouseItemListTreeView();
     }
 
     private void itemMousePress(MouseEvent mouseEvent, Item item) {
         currentItemSelected = item;
-
-        // update label
-
     }
 
     // get the list of auction houses
@@ -335,19 +436,22 @@ public class UserGUIController {
                         getHousesArgs);
         bankWriter.write(getHousesMessage);
 
-        List<String> housesArgs;
-        while (true) {
-            try {
-                if (bankReader.ready()) {
-                    String housesMessage = bankReader.readLine();
-                    housesArgs =
-                            MessageEnum.parseMessageArgs(housesMessage);
-                    break;
-                }
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
-        }
+        FullMessage houseListMessage = getFullMessageFromReader(
+                bankReader);
+        List<String> housesArgs = houseListMessage.getMessageArgs();
+
+//        while (true) {
+//            try {
+//                if (bankReader.ready()) {
+//                    String housesMessage = bankReader.readLine();
+//                    housesArgs =
+//                            MessageEnum.parseMessageArgs(housesMessage);
+//                    break;
+//                }
+//            } catch (IOException e) {
+//                System.out.println(e.getMessage());
+//            }
+//        }
 
         entireHousesList.clear();
         for (int i = 0; i < housesArgs.size(); i += 2) {
@@ -369,22 +473,49 @@ public class UserGUIController {
 
     // get the user id
     private void setUserID() {
+//        while (true) {
+//            try {
+//                if (bankReader.ready()) {
+//                    String userIDMessage = bankReader.readLine();
+//                    List<String> userIDArgs =
+//                            MessageEnum.parseMessageArgs(userIDMessage);
+//                    userID = Integer.parseInt(userIDArgs.get(0));
+//
+//                    // account ID is the same as the user ID
+//                    userBankAccount = new BankAccount(INITIAL_BALANCE,
+//                            userID);
+//                    break;
+//                }
+//            } catch (IOException e) {
+//                System.out.println(e.getMessage());
+//            }
+//        }
+
+        FullMessage userIDMessage = getFullMessageFromReader(
+                bankReader);
+        List<String> userIDArgs =
+                userIDMessage.getMessageArgs();
+
+        userID = Integer.parseInt(userIDArgs.get(0));
+
+        // account ID is the same as the user ID
+        userBankAccount = new BankAccount(INITIAL_BALANCE,
+                userID);
+    }
+
+    private FullMessage getFullMessageFromReader(BufferedReader currentReader) {
+        String returnMessage;
         while (true) {
             try {
-                if (bankReader.ready()) {
-                    String userIDMessage = bankReader.readLine();
-                    List<String> userIDArgs =
-                            MessageEnum.parseMessageArgs(userIDMessage);
-                    userID = Integer.parseInt(userIDArgs.get(0));
+                if (currentReader.ready()) {
+                    returnMessage = currentReader.readLine();
                     break;
                 }
             } catch (IOException e) {
                 System.out.println(e.getMessage());
             }
         }
-    }
 
-    private void updateLabels() {
-
+        return new FullMessage(returnMessage);
     }
 }
