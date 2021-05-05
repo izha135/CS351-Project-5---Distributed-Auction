@@ -288,15 +288,15 @@ public class Bank{
         for(int i = 0; i < userList.size(); i++) {
             PrintWriter userWriter = userList.get(i).writer;
             // Message item winner of their winnings
-            /*if(userList.get(i).id == winningUser) {
+            if(userList.get(i).id == winningUser) {
                 userWriter.println(MessageEnum.WINNER + ";" + itemName + ";" + houseId + ";" + itemId
                         + ";" + itemBid);
-            }*/
+            }
             // Message all other users that this item has been sold (cannot bid on it anymore)
-            //else {
+            else {
                 userWriter.println(MessageEnum.ITEM_WON + ";" + itemName + ";" + houseId + ";" + itemId +
                         getUser(winningUser).username + ";" + itemBid);
-            //}
+            }
         }
         houseWriter.println(MessageEnum.REMOVE_ITEM + ";" + itemId);
     }

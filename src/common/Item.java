@@ -8,14 +8,20 @@ public class Item implements Serializable {
     private int houseId;
     private double itemBid;
     private String itemDesc;
+    private int bidderId;
 
-    public Item(String itemName, int itemId, int minBid, String itemDesc) {
+    public Item(String itemName, int itemId, double minBid, String itemDesc) {
         this.itemName = itemName;
         this.itemId = itemId;
         this.itemBid = minBid;
         this.itemDesc = itemDesc;
         this.houseId = -1;
+        this.bidderId = -1;
     }
+
+    public void setBidderId(int bidderId) { this.bidderId = bidderId; }
+
+    public int getBidderId() { return bidderId; }
 
     public String getItemName() {
         return itemName;
