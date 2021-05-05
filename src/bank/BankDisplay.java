@@ -3,6 +3,8 @@ package bank;
 import common.Item;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
 import javafx.scene.Camera;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -15,7 +17,8 @@ import javafx.stage.Stage;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BankDisplay extends Application {
+//public class BankDisplay extends Application {
+public class BankDisplay {
     private final int WIDTH = 800;
     private final int HEIGHT = 700;
     private VBox mainVBox1, mainVBox2;
@@ -24,18 +27,43 @@ public class BankDisplay extends Application {
     private Map<Integer, HouseBox> houses;
     private Map<Integer, UserBox> users;
 
-    public void createDisplay() {
-        launch();
+    {
+        JFXPanel fxPanel = new JFXPanel();
     }
 
-    @Override
-    public void start(Stage primaryStage) throws Exception {
+    public BankDisplay() {
+        houses = new HashMap<>();
+        users = new HashMap<>();
+
         scene1 = new Group();
         scene2 = new Group();
-        root = new Pane(scene1);
-        scene1.getChildren().add(new Rectangle(10, 10, Color.BLACK));
 
-        initializeElements();
+        mainVBox1 = new VBox();
+        mainVBox1.setSpacing(5);
+        //mainVBox1.setPrefWidth(WIDTH);
+
+        scene1.getChildren().add(mainVBox1);
+
+        mainVBox2 = new VBox();
+        mainVBox2.setSpacing(5);
+        //mainVBox2.setPrefWidth(WIDTH);
+
+        scene2.getChildren().add(mainVBox2);
+
+        root = new Pane();
+    }
+
+    public void createDisplay() {
+        //launch();
+        Platform.runLater(() -> {
+            Stage stage = new Stage();
+            start(stage);
+        });
+    }
+
+    //@Override
+    public void start(Stage primaryStage) {
+        root.getChildren().add(scene1);
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         scene.setOnScroll(event -> {
@@ -58,58 +86,64 @@ public class BankDisplay extends Application {
         primaryStage.show();
     }
 
-    public void initializeElements() {
-        VBox vbox = new VBox();
-        vbox.setSpacing(5);
-        vbox.setPrefWidth(WIDTH);
-
-        scene1.getChildren().add(vbox);
-        mainVBox1 = vbox;
-
-        houses = new HashMap<>();
-        users = new HashMap<>();
-    }
-
     public void addUser(int userId, String name, double balance) {
-        UserBox userBox = new UserBox(name, balance);
-        users.put(userId, userBox);
-        mainVBox2.getChildren().add(userBox.getUserBox());
+        Platform.runLater(() -> {
+            UserBox userBox = new UserBox(name, balance);
+            users.put(userId, userBox);
+            mainVBox2.getChildren().add(userBox.getUserBox());
+        });
     }
 
     public void removeUser(int userId) {
-        mainVBox2.getChildren().remove(userId);
-        users.remove(userId);
+        Platform.runLater(() -> {
+            mainVBox2.getChildren().remove(userId);
+            users.remove(userId);
+        });
     }
 
     public void changeUserBalance(int userId, double balance) {
-        users.get(userId).changeBalance(balance);
+        Platform.runLater(() -> {
+            users.get(userId).changeBalance(balance);
+        });
     }
 
     public void changeUserRemaining(int userId, double remaining) {
-        users.get(userId).changeRemaining(remaining);
+        Platform.runLater(() -> {
+            users.get(userId).changeRemaining(remaining);
+        });
     }
 
     public void addHouse(int houseId) {
-        HouseBox houseBox = new HouseBox(houseId);
-        houses.put(houseId, houseBox);
-        mainVBox1.getChildren().add(houseBox.getHouseBox());
+        Platform.runLater(() -> {
+            HouseBox houseBox = new HouseBox(houseId);
+            houses.put(houseId, houseBox);
+            mainVBox1.getChildren().add(houseBox.getHouseBox());
+        });
     }
 
     public void removeHouse(int houseId) {
-        mainVBox1.getChildren().remove(houses.get(houseId));
-        houses.remove(houseId);
+        Platform.runLater(() -> {
+            mainVBox1.getChildren().remove(houses.get(houseId));
+            houses.remove(houseId);
+        });
     }
 
     public void addHouseItem(int houseId, Item item) {
-        houses.get(houseId).addItem(item);
+        Platform.runLater(() -> {
+            houses.get(houseId).addItem(item);
+        });
     }
 
     public void removeHouseItem(int houseId, int itemId) {
-        houses.get(houseId).removeItem(itemId);
+        Platform.runLater(() -> {
+            houses.get(houseId).removeItem(itemId);
+        });
     }
 
     public void updateHouseItem(int houseId, int itemId, String topBidder, double bid) {
-        houses.get(houseId).updateItem(itemId, topBidder, bid);
+        Platform.runLater(() -> {
+            houses.get(houseId).updateItem(itemId, topBidder, bid);
+        });
     }
 
     private class UserBox {
@@ -155,6 +189,8 @@ public class BankDisplay extends Application {
             itemsBox.setBorder(new Border(
                     new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
             items = new HashMap<>();
+
+            houseBox.getChildren().add(itemsBox);
         }
 
         public void addItem(Item item) {

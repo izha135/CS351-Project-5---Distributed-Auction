@@ -17,10 +17,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class Bank{
     // The graphic display showing the actions happening within the bank
@@ -63,7 +60,7 @@ public class Bank{
             // Check every user's and house's reader for if they have input to be parsed
             boolean run = true;
             while(run) {
-                //System.out.print("");
+                System.out.print("");
                 for(int i = 0; i < userList.size(); i++) {
                     SocketInfo socket = userList.get(i);
                     if(socket.reader.ready()) {
@@ -219,7 +216,7 @@ public class Bank{
     private static void handleHouseGetItemsFromBank(int houseId, int count) {
         // Construct a message with a list of items from the bank
         PrintWriter houseWriter = getHouse(houseId).writer;
-        String message = MessageEnum.ITEMS.toString();
+        String message = MessageEnum.ITEMS.toString() + ";" + houseId + ";" + count;
         for(int i = 0; i < count; i++) {
             if(itemList.size() == 0) {
                 break;
@@ -347,6 +344,7 @@ public class Bank{
                 itemId += 1;
                 itemList.add(item);
             }
+            Collections.shuffle(itemList);
         }
         catch (Exception e) {
             e.printStackTrace();
