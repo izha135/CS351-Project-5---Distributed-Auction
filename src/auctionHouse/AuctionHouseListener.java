@@ -42,7 +42,7 @@ public class AuctionHouseListener extends Thread{
                 // Test if the message indicates a house
                 int userId = Integer.parseInt(split[0]);
                 synchronized (userList) {
-                    userList.add(new AuctionHouse.SocketInfo(socket, writer, reader));
+                    userList.add(new AuctionHouse.SocketInfo(socket, writer, reader, userId));
                 }
                 System.out.println("New user has logged in with id " + userId);
             }
