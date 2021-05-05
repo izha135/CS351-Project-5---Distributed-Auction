@@ -17,6 +17,7 @@
             <Label fx:id="userIDAccountLabel" text="User/Account #" />
             <Label fx:id="userAccountBalanceLabel" text="User Account Balance: $" />
             <Label fx:id="userBlockAmountLabel" text="Blocked Amount from Balance: $" />
+            <Button fx:id="userExitButton" mnemonicParsing="false" text="Exit" />
          </children>
       </VBox>
    </top>

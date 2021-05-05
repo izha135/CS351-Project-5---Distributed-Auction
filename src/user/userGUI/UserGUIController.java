@@ -4,10 +4,12 @@ import common.*;
 import commonGUI.CustomAuctionHouseTreeItem;
 import commonGUI.CustomItemTreeItem;
 import commonGUI.GuiStuff;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 import user.Bid;
 
 import java.io.BufferedReader;
@@ -52,6 +54,9 @@ public class UserGUIController {
 
     @FXML
     TextArea bidHistoryTextArea;
+
+    @FXML
+    Button userExitButton;
 
     private GuiStuff guiStuff;
     private CustomAuctionHouseTreeItem rootTreeItem;
@@ -211,8 +216,10 @@ public class UserGUIController {
                 userBidAmountTextField,
                 bidHistoryLabel, bidHistoryTextArea, userBlockAmountLabel);
 
-        bidButton.setOnAction(event -> bidButtonOnAction(
-        ));
+        bidButton.setOnAction(event -> bidButtonOnAction());
+
+        // don't know what the difference is with lambda and method reference...
+        userExitButton.setOnAction(this::exitRequestCheck);
 
         //}
         //catch (Exception e) {
@@ -517,5 +524,44 @@ public class UserGUIController {
         }
 
         return new FullMessage(returnMessage);
+    }
+
+    private void exitRequestCheck(Event event) {
+        List<String> exitBankArgs = new ArrayList<>();
+        exitBankArgs.add(Integer.toString(userID));
+
+        List<String> exitHouseArgs = new ArrayList<>();
+        exitHouseArgs.add(
+                Integer.toString(currentAuctionHouseUser.getHouseID()));
+
+        bankWriter.println(
+                MessageEnum.createMessageString(EXIT,
+                        exitBankArgs));
+        houseWriter.println(MessageEnum.createMessageString(CAN_EXIT,
+                exitHouseArgs));
+
+        FullMessage exitBankMessage = getFullMessageFromReader(
+                bankReader);
+        FullMessage exitHouseMessage = getFullMessageFromReader(
+                houseReader);
+
+        MessageEnum exitBankMessageEnum = exitBankMessage.getMessageEnum();
+        MessageEnum exitHouseMessageEnum = exitHouseMessage.getMessageEnum();
+
+        if (exitBankMessageEnum == CAN_EXIT
+                && exitHouseMessageEnum == CAN_EXIT) {
+            // get a handle to the stage
+            Stage stage = (Stage) userExitButton.getScene().getWindow();
+            stage.close();
+        } else {
+            Alert exitAlert = new Alert(Alert.AlertType.ERROR);
+            exitAlert.setTitle("Exit Auction House Error");
+            exitAlert.setContentText("Sorry, you are unable to exit due to " +
+                    "various reasons (bids still in progress)...");
+
+            exitAlert.show();
+
+            event.consume();
+        }
     }
 }
