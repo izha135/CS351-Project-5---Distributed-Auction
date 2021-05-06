@@ -120,6 +120,7 @@ public class Bank{
     private static void handleUserCommand(String text) {
         // Split the string on the delimiter ;
         String[] splitText = text.split(";");
+        System.out.println("User: " + text);
         // Parse the command, which is always the first string
         MessageEnum command = MessageEnum.parseCommand(splitText[0]);
         switch (command) {
@@ -143,6 +144,7 @@ public class Bank{
     private static void handleHouseCommand(String text) {
         // Split the string on the delimiter ;
         String[] splitText = text.split(";");
+        System.out.println("House: " + text);
         // Parse the command, which is always the first string
         MessageEnum command = MessageEnum.parseCommand(splitText[0]);
         switch (command) {
@@ -162,11 +164,12 @@ public class Bank{
             case AUCTION_ENDED:
                 // The item being bid for has now been sold
                 houseId = Integer.parseInt(splitText[1]);
-                int winningUser = Integer.parseInt(splitText[2]);
+                String itemName = splitText[2];
                 itemId = Integer.parseInt(splitText[3]);
                 itemBid = Double.parseDouble(splitText[4]);
-                String itemName = splitText[5];
-                handleHouseAuctionEnded(houseId, winningUser, itemId, itemBid, itemName);
+                int winningUser = Integer.parseInt(splitText[5]);
+                String itemDesc = splitText[6];
+                handleHouseAuctionEnded(houseId, itemName, itemId, itemBid, winningUser, itemDesc);
                 break;
             case EXIT:
                 houseId = Integer.parseInt(splitText[1]);
@@ -182,8 +185,8 @@ public class Bank{
         String message = MessageEnum.HOUSE_LIST.toString();
         String hostName;
         for(int i = 0; i < houseList.size(); i++) {
-            hostName = houseList.get(i).socket.getInetAddress().getHostName();
-            message += ";" + houseList.get(i) +";" + hostName;
+            hostName = houseList.get(i).socket.getInetAddress().getHostAddress();
+            message += ";" + houseList.get(i).id +";" + hostName;
         }
         PrintWriter userWriter = getUser(userId).writer;
         userWriter.println(message);
@@ -242,13 +245,13 @@ public class Bank{
             display.updateHouseItem(houseId, itemId, getUser(userId).username, itemBid);
 
             // Bid should be accepted
-            message = MessageEnum.ACCEPT_BID + ";" + userId + ";" + itemBid;
+            message = MessageEnum.ACCEPT_BID + ";" + userId + ";" + itemId;
 
             SocketInfo newUser = getUser(userId);
             SocketInfo oldUser = getUser(previousHidBidUserId);
 
             newUser.account.removeFunds(itemBid);
-            oldUser.account.addFunds(itemBid);
+            if (oldUser != null) oldUser.account.addFunds(itemBid);
 
             display.changeUserRemaining(userId, newUser.account.getRemainingBalance());
 
@@ -263,13 +266,13 @@ public class Bank{
         }
         else {
             // Bid should be rejected
-            message = MessageEnum.REJECT_BID + ";" + userId + ";" + itemBid;
+            message = MessageEnum.REJECT_BID + ";" + userId + ";" + itemId;
         }
         houseWriter.println(message);
     }
 
-    private static void handleHouseAuctionEnded(int houseId, int winningUser, int itemId, double itemBid,
-                                                String itemName) {
+    private static void handleHouseAuctionEnded(int houseId, String itemName, int itemId, double itemBid,
+                                                int winningUser, String itemDesc) {
         display.removeHouseItem(houseId, itemId);
 
         PrintWriter houseWriter = getHouse(houseId).writer;
@@ -286,12 +289,12 @@ public class Bank{
             PrintWriter userWriter = userList.get(i).writer;
             // Message item winner of their winnings
             if(userList.get(i).id == winningUser) {
-                userWriter.println(MessageEnum.WINNER + ";" + itemName + ";" + houseId + ";" + itemId
+                userWriter.println(MessageEnum.WINNER + ";" + houseId + ";" + itemName + ";" + itemId
                         + ";" + itemBid);
             }
             // Message all other users that this item has been sold (cannot bid on it anymore)
             else {
-                userWriter.println(MessageEnum.ITEM_WON + ";" + itemName + ";" + houseId + ";" + itemId +
+                userWriter.println(MessageEnum.ITEM_WON + ";" + houseId + ";" + itemName + ";" + itemId +
                         getUser(winningUser).username + ";" + itemBid);
             }
         }

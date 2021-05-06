@@ -67,7 +67,7 @@ public class BankDisplay {
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         scene.setOnScroll(event -> {
-            root.setTranslateY(root.getTranslateY() - event.getDeltaY() * 0.8);
+            root.setTranslateY(root.getTranslateY() + event.getDeltaY() * 0.8);
         });
 
         scene.setOnMouseClicked(event -> {
@@ -88,7 +88,7 @@ public class BankDisplay {
 
     public void addUser(int userId, String name, double balance) {
         Platform.runLater(() -> {
-            UserBox userBox = new UserBox(name, balance);
+            UserBox userBox = new UserBox(userId, name, balance);
             users.put(userId, userBox);
             mainVBox2.getChildren().add(userBox.getUserBox());
         });
@@ -150,13 +150,16 @@ public class BankDisplay {
         private HBox userBox;
         private Label nameLabel, balanceLabel, remainingLabel;
 
-        public UserBox(String name, double balance) {
+        public UserBox(int userId, String name, double balance) {
             String adjustedBal = Double.toString(Math.round(balance*100)/100.0);
 
             userBox = new HBox();
-            nameLabel = new Label(name);
+            userBox.setSpacing(10);
+            nameLabel = new Label("User " + userId + ":");
             balanceLabel = new Label(adjustedBal);
             remainingLabel = new Label(adjustedBal);
+
+            userBox.getChildren().addAll(nameLabel, balanceLabel, remainingLabel);
         }
 
         public void changeBalance(double balance) {

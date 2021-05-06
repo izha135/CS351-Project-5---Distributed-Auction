@@ -65,8 +65,10 @@ public class BankListener extends Thread{
         // Always keep accepting incoming socket requests for the duration of the program
         while(run) {
             try{
+                //System.out.println(serverSocket);
                 Socket socket = serverSocket.accept();
-                System.out.println("Accepted!");
+                System.out.println("Socket Inet Address Host name: " + socket.getInetAddress().getHostName());
+                System.out.println("Socket Inet Address Host address: " + socket.getInetAddress().getHostAddress());
 
                 InputStream input = socket.getInputStream();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(input));

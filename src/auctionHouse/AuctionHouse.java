@@ -103,6 +103,8 @@ public class AuctionHouse {
 
     // THE writer IS THE WRITER FOR THE USER. USE IT TO SEND MESSAGES
     public static void parseUserMessage(String message, PrintWriter userWriter, PrintWriter bankWriter) {
+        System.out.println(message);
+
         String[] split = message.split(";");
         MessageEnum command = MessageEnum.parseCommand(split[0]);
 
@@ -138,15 +140,6 @@ public class AuctionHouse {
                 break;
             case GET_ITEM:
                 itemId = Integer.parseInt(split[1]);
-                /*relevantItem = null;
-                synchronized (items) {
-                    for(Item item : items.values()) {
-                        if (item.getItemId() == itemId) {
-                            relevantItem = item;
-                            break;
-                        }
-                    }
-                }*/
                 relevantItem = items.get(itemId);
                 if(relevantItem == null) {
                     userWriter.println(MessageEnum.ERROR + ";The Item does not exist");
@@ -161,13 +154,12 @@ public class AuctionHouse {
                 }
                 break;
             case GET_ITEMS:
-                relevantItem = null;
                 String userMessage = MessageEnum.ITEMS + ";" + ahId;
                 synchronized (items) {
                     userMessage += ";" + items.size();
                     for(Item item : items.values()) {
                         userMessage += ";" + item.getItemName() + ";" + item.getItemId() + ";";
-                        userMessage += item.getItemBid() + ";" + item.getBidderId() + ";";
+                        userMessage += item.getItemBid() + ";";
                         userMessage += item.getItemDesc();
                     }
                 }
@@ -203,6 +195,8 @@ public class AuctionHouse {
     }
 
     public static void parseBankMessage(String message, PrintWriter bankWriter) {
+        System.out.println(message);
+
         String[] split = message.split(";");
         MessageEnum command = MessageEnum.parseCommand(split[0]);
 
