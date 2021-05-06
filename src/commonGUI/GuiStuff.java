@@ -55,9 +55,9 @@ public class GuiStuff {
         userIDAccountLabel.setText(userIDAccountCustomLabel.getText());
     }
 
-    public void updateUserAccountBalanceLabel(double bidAmount) {
+    public void updateUserAccountBalanceLabel(double accountBalance) {
         userAccountBalanceCustomLabel.updateLabel(
-                Double.toString(bidAmount));
+                Double.toString(accountBalance));
         userAccountBalanceLabel.setText(
                 userAccountBalanceCustomLabel.getText());
     }
