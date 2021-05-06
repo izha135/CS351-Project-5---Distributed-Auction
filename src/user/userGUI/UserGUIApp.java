@@ -8,6 +8,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 public class UserGUIApp extends Application {
+    public static int bankPort;
+    public static int housePort;
+
     @Override
     public void start(Stage primaryStage) {
         try {
@@ -35,6 +38,8 @@ public class UserGUIApp extends Application {
     }
 
     public static void main(String[] args) {
+        bankPort = Integer.parseInt(args[0]);
+        housePort = Integer.parseInt(args[1]);
         launch(args);
     }
 }

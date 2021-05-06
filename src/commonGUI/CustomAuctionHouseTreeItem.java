@@ -13,7 +13,14 @@ public class CustomAuctionHouseTreeItem extends TreeItem<String> {
                                       AuctionHouseUser auctionHouseUser) {
         super(value);
         this.auctionHouseUser = auctionHouseUser;
-        this.houseID = auctionHouseUser.getHouseID();
+
+        if (auctionHouseUser != null) {
+            this.houseID = auctionHouseUser.getHouseID();
+        }
+    }
+
+    public CustomAuctionHouseTreeItem(String value) {
+        super(value);
     }
 
     public boolean checkID(int someID) {

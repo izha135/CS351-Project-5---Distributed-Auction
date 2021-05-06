@@ -136,7 +136,7 @@ public enum MessageEnum {
 
     public static String createMessageString(MessageEnum messageEnum,
                                              List<String> messageArgs) {
-        String message = messageArgs.toString(); // assume the messageEnum is
+        String message = messageEnum.toString(); // assume the messageEnum is
         // some valid enum (internally checked)
         for (String messageArg : messageArgs) {
             message += ";" + messageArg;

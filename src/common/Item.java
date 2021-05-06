@@ -6,13 +6,13 @@ public class Item implements Serializable {
     private String itemName;
     private int itemId;
     private int houseId;
-    private double itemBid;
+    private double minBid;
     private String itemDesc;
 
-    public Item(String itemName, int itemId, int minBid, String itemDesc) {
+    public Item(String itemName, int itemId, double minBid, String itemDesc) {
         this.itemName = itemName;
         this.itemId = itemId;
-        this.itemBid = minBid;
+        this.minBid = minBid;
         this.itemDesc = itemDesc;
         this.houseId = -1;
     }
@@ -42,11 +42,11 @@ public class Item implements Serializable {
     }
 
     public double getItemBid() {
-        return itemBid;
+        return minBid;
     }
 
-    public void setItemBid(double itemBid) {
-        this.itemBid = itemBid;
+    public void setItemBid(double minBid) {
+        this.minBid = minBid;
     }
 
     public String getItemDesc() {
@@ -60,7 +60,7 @@ public class Item implements Serializable {
     @Override
     public String toString() {
         return "Item name: " + itemName + "\nItem ID: " + itemId + "\nItem " +
-                "Bid: " + itemBid + "\nItem Description: " + itemDesc + "\n";
+                "Bid: " + minBid + "\nItem Description: " + itemDesc + "\n";
     }
 
     public String getTreeItemTitle() {

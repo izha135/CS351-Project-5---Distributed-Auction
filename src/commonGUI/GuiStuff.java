@@ -26,7 +26,7 @@ public class GuiStuff {
     public GuiStuff(Label userIDAccountLabel, Label userAccountBalanceLabel,
                     Label currentAuctionHouseLabel, Label currentItemSelectedLabel,
                     TextField userBidAmountTextField, Label bidHistoryLabel,
-                    TextArea bidHistoryTextArea, Label userBlockAmountLabel) {
+                    Label userBlockAmountLabel, TextArea bidHistoryTextArea) {
         this.userIDAccountLabel = userIDAccountLabel;
         this.userAccountBalanceLabel = userAccountBalanceLabel;
         this.userBlockAmountLabel = userBlockAmountLabel;
@@ -39,11 +39,15 @@ public class GuiStuff {
         userAccountBalanceCustomLabel =
                 new CustomLabel(userAccountBalanceLabel);
         userBlockAmountCustomLabel = new CustomLabel(userBlockAmountLabel);
+        currentAuctionHouseCustomLabel =
+                new CustomLabel(currentAuctionHouseLabel);
         currentItemSelectedCustomLabel =
                 new CustomLabel(currentItemSelectedLabel);
         bidHistoryCustomLabel = new CustomLabel(bidHistoryLabel);
+        this.bidHistoryTextArea = bidHistoryTextArea;
     }
 
+    // FIXME: update on startup...
     // shouldn't be needed except for the initial startup...
     public void updateUserIDAccountLabel(int userID) {
         userIDAccountCustomLabel.updateLabel(
@@ -92,7 +96,7 @@ public class GuiStuff {
         currentItemSelectedCustomLabel.updateLabel(
                 item.getTreeItemTitle());
         currentItemSelectedLabel.setText(
-                currentAuctionHouseCustomLabel.getText());
+                currentItemSelectedCustomLabel.getText());
     }
 
     public double parseUserBidAmountTextField() {
