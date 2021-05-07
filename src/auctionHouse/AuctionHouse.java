@@ -1,3 +1,12 @@
+/**
+ * CS 351L Project 5 - Distributed Auction Houses
+ * Pun Chhetri, Isha Chauhan, John Cooper, John Tran
+ *
+ * The main construct that acts as an Auction House that
+ * communicates to both the Bank and Users. Has the logic
+ * that pertains to items being sold.
+ */
+
 package auctionHouse;
 
 import common.Item;
@@ -15,30 +24,41 @@ import java.util.List;
 
 public class AuctionHouse {
 
+    // The ports that the banks and users connect through
     private static int bankPort, userPort;
-    private static int ahId; // Requested and received from Auction Central
-    private static HashMap<Integer, Item> items; //Item ID as key for the item.
+    // Requested and received from Auction Central
+    private static int ahId;
+    // Item ID as key for the item.
+    private static HashMap<Integer, Item> items;
+    // The map of all of the timers that test when an item has stopped being auctioned
     private static HashMap<Integer, TimerThread> itemTimers;
+    // The list of all of the socket infos for all the users
     private static List<SocketInfo> userList;
+    // The writer that sends messages to the bank
     private static PrintWriter bankWriter;
-
+    // A variable that dictates if the 'listener' for messages
+    // should keep running
     private static boolean run;
 
     /**
      * Creates an AuctionHouse that has three random items for sale.
      *
      * args[0] is expected to be the hostname
+     * args[1] is the port for the bank
+     * args[2] is the port for the auctionHouse server
      */
     public static void main(String[] args) {
         items = new HashMap<>();
         itemTimers = new HashMap<>();
         userList = new LinkedList<>();
         String hostName = args[0];
-        bankPort = 3030;
-        userPort = 3031;
+        // Set the ports
+        bankPort = Integer.parseInt(args[1]);
+        userPort = Integer.parseInt(args[2]);
 
         String message;
         String[] split;
+        // Create a server for the users to login to
         ServerSocket server = null;
         try {
             server = new ServerSocket(userPort);
@@ -46,18 +66,21 @@ public class AuctionHouse {
         catch (Exception e) {
             e.printStackTrace();
         }
+        // Create a listener listening for users trying to join
+        // the auction house
         AuctionHouseListener listener = new AuctionHouseListener(server, userList);
         listener.start();
 
+        // Open a socket to the bank
         try (Socket socket = new Socket(hostName, bankPort);
              PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
              BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))){
 
             bankWriter = writer;
 
+            // Send a 'HOUSE' message to inform the bank of being a house
             writer.println(MessageEnum.HOUSE.toString());
             while(!reader.ready()) System.out.print("");
-            //while(!reader.ready()) ;
 
             // This is dealing with the login message from the Bank
             message = reader.readLine();
@@ -67,10 +90,11 @@ public class AuctionHouse {
             // Get items for the auction house from the bank
             populateItems(writer, reader);
 
-            // Now being listening and parsing messags
+            // Now listening and parsing messages
             run = true;
             while(run) {
                 for(int i = 0; i < userList.size(); i++) {
+                    // Look for user messages
                     if(userList.get(i).reader.ready()) {
                         SocketInfo user = userList.get(i);
                         message = user.reader.readLine();
@@ -78,6 +102,7 @@ public class AuctionHouse {
                     }
                 }
                 if(reader.ready()) {
+                    // Look for bank messages
                     message = reader.readLine();
                     parseBankMessage(message, writer);
                 }
@@ -88,6 +113,11 @@ public class AuctionHouse {
         }
     }
 
+    /**
+     * Find a user in the list based off of the userID
+     * @param userId The userId for the desired user
+     * @return The desired user
+     */
     public static SocketInfo getUser(int userId) {
         SocketInfo user = null;
         synchronized (userList) {
@@ -101,19 +131,26 @@ public class AuctionHouse {
         return user;
     }
 
-    // THE writer IS THE WRITER FOR THE USER. USE IT TO SEND MESSAGES
+    /**
+     * Take a message from the user and parse what it should do
+     * @param message The message that was sent by the user
+     * @param userWriter The writer for the user
+     * @param bankWriter The writer for the bank
+     */
     public static void parseUserMessage(String message, PrintWriter userWriter, PrintWriter bankWriter) {
         System.out.println(message);
 
+        // Parse the parts of the message
         String[] split = message.split(";");
         MessageEnum command = MessageEnum.parseCommand(split[0]);
 
         switch(command) {
+            // Process a bid request from the user
             case BID:
                 int userId = Integer.parseInt(split[1]);
                 double bidAmount = Double.parseDouble(split[2]);
                 int itemId = Integer.parseInt(split[3]);
-                int houseId = Integer.parseInt(split[4]); // Might wanna check if this agrees with the ahId
+                int houseId = Integer.parseInt(split[4]);
                 // Check if the item is in the AuctionHouse
                 Item relevantItem = null;
                 synchronized (items) {
@@ -124,7 +161,7 @@ public class AuctionHouse {
                         }
                     }
                 }
-                if(relevantItem == null) {
+                if(relevantItem == null || relevantItem.getItemBid() > bidAmount) {
                     // If not, send a REJECT message (formatted) to the user
                     String userMessage = MessageEnum.REJECT.toString();
                     userMessage += ";" + ahId + ";" + itemId;
@@ -138,6 +175,7 @@ public class AuctionHouse {
                     bankWriter.println(bankMessage);
                 }
                 break;
+                // Process a request to get a specific item
             case GET_ITEM:
                 itemId = Integer.parseInt(split[1]);
                 relevantItem = items.get(itemId);
@@ -153,6 +191,7 @@ public class AuctionHouse {
                     userWriter.println(userMessage);
                 }
                 break;
+                // Process a request to get all the items
             case GET_ITEMS:
                 String userMessage = MessageEnum.ITEMS + ";" + ahId;
                 synchronized (items) {
@@ -166,6 +205,7 @@ public class AuctionHouse {
                 // Return an ITEMS message to the requesting user
                 userWriter.println(userMessage);
                 break;
+                // Process a request to exit the house
             case EXIT:
                 userId = Integer.parseInt(split[1]);
                 // Check if the user is the highest bidder on any of the items
@@ -179,7 +219,7 @@ public class AuctionHouse {
                     }
                 }
                 userMessage = "";
-                if(canExit) {
+                if(!canExit) {
                     // If true, send and ERROR message "Cannot exit"
                     userMessage = MessageEnum.ERROR + ";Cannot Exit";
                 }
@@ -194,16 +234,24 @@ public class AuctionHouse {
         }
     }
 
+    /**
+     * Parse a message from the bank
+     * @param message The message to parse
+     * @param bankWriter The writer to send messages to the bank
+     */
     public static void parseBankMessage(String message, PrintWriter bankWriter) {
         System.out.println(message);
 
+        // Part the message
         String[] split = message.split(";");
         MessageEnum command = MessageEnum.parseCommand(split[0]);
 
         switch(command) {
+            // Process a message saying the bid was accepted
             case ACCEPT_BID:
                 int userId = Integer.parseInt(split[1]);
                 int itemId = Integer.parseInt(split[2]);
+                double itemBid = Double.parseDouble(split[3]);
                 Item item = items.get(itemId);
                 String userMessage = "";
                 SocketInfo user = getUser(userId);
@@ -217,7 +265,7 @@ public class AuctionHouse {
                         synchronized (itemTimers){
                             itemTimers.put(itemId, thread);
                         }
-                        thread.run();
+                        thread.start();
                     }
                     else {
                         // Otherwise, reset the timer with a valid bid
@@ -232,11 +280,13 @@ public class AuctionHouse {
 
                     // Change the highest bidder on the item to the userId in the message
                     item.setBidderId(userId);
+                    item.setItemBid(itemBid);
                     // Send a ACCEPT message to the user
-                    userMessage = MessageEnum.ACCEPT_BID + ";" + userId + ";" + itemId;
+                    userMessage = MessageEnum.ACCEPT + ";" + userId + ";" + itemId;
                 }
                 user.writer.println(userMessage);
                 break;
+                // Process a request sent by the bank that the bid was rejected
             case REJECT_BID:
                 userId = Integer.parseInt(split[1]);
                 itemId = Integer.parseInt(split[2]);
@@ -248,15 +298,17 @@ public class AuctionHouse {
                 }
                 else {
                     // Send a REJECT message to the user
-                    userMessage = MessageEnum.ACCEPT_BID + ";" + userId + ";" + itemId;
+                    userMessage = MessageEnum.REJECT + ";" + userId + ";" + itemId;
                 }
                 user.writer.println(userMessage);
                 break;
+                // Process a message saying it is okay for the AH to exit
             case CAN_EXIT:
                 // The bank says it is okay to exit
                 run = false;
                 // Do other things to exit gracefully
                 break;
+                // Process a message from an error
             case ERROR:
                 String errorMessage = split[1];
                 // Print the error message to the screen or something
@@ -267,8 +319,11 @@ public class AuctionHouse {
         }
     }
 
+    /**
+     * Invoked by the timers. Run if the timers run out for a specific item
+     * @param itemId The item which needs to be sold
+     */
     public static void timerExpired(int itemId) {
-        // FIXME: deal with this
         Item item = items.get(itemId);
         if(item == null) {
             System.out.println("Something weird happened");
@@ -333,44 +388,6 @@ public class AuctionHouse {
             output += itemsAsList.get(i).toString() + "\n";
         }
         return output;
-    }
-
-    /**
-     * placeBid()
-     * Called by an Agent to place a bid (or by a Client when a PLACE_BID Message is received)
-     *
-     * @param biddingID      BIDDING_ID of the Agent who wishes to place a bid
-     * @param amount         Amount the bidder wishes to bid.
-     * @param itemID         ID of the item the bidder wishes to bid on
-     * @param auctionHouseID the ID of this auction house (needed by Client)
-     * @return true if Client should move ahead and request a hold to be placed.
-     * false if something went wrong (the Agent bid too little,) in which case the Client can send
-     * a bidResponse REJECT Message, not this AuctionHouse's ID, the item doesn't exist here)
-     * right back to the Agent.
-     */
-    public boolean placeBid(String biddingID, double amount, int itemID, int auctionHouseID) {
-        //Safechecking
-        Item item = items.get(itemID);
-        if (item == null) {
-            //That item isn't for sale here USER OUTPUT
-            System.err.println("Bidding ID " + biddingID + " tried to bid on " + itemID + ", which is not an item in "
-                    + ". Returning");
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @param itemID ID of the item stored in the timer that is called when the item is sold.
-     *               Called when a 'winning' item timer goes off.
-     * @return true if AuctionHouse still has items
-     * false if AuctionHouse is out of items and needs to close.
-     */
-    public boolean itemSold(int itemID) {
-        Item itemSold = items.remove(itemID);
-        return !items.isEmpty();
-        //return "Item "+itemSold.getItemName()+" has been sold for $"+itemSold.getCurrentBid()+"!";
     }
 
     static class SocketInfo {
