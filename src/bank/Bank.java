@@ -33,7 +33,7 @@ public class Bank{
     private static List<Item> itemList;
 
     public static void main(String[] args) {
-        int port = 3030;
+        int port = Integer.parseInt(args[0]);
 
         userList = new ArrayList<>();
         houseList = new ArrayList<>();
@@ -202,7 +202,7 @@ public class Bank{
         PrintWriter userWriter = getUser(userId).writer;
         if(canExit) {
             userWriter.println(MessageEnum.CAN_EXIT);
-            SocketInfo socketInfo = getHouse(userId);
+            SocketInfo socketInfo = getUser(userId);
             try {
                 socketInfo.socket.close();
             }
@@ -210,6 +210,7 @@ public class Bank{
                 e.printStackTrace();
             }
             userList.remove(socketInfo);
+            display.removeUser(userId);
         }
         else {
             userWriter.println(MessageEnum.ERROR + ";Cannot exit");
@@ -245,7 +246,7 @@ public class Bank{
             display.updateHouseItem(houseId, itemId, getUser(userId).username, itemBid);
 
             // Bid should be accepted
-            message = MessageEnum.ACCEPT_BID + ";" + userId + ";" + itemId;
+            message = MessageEnum.ACCEPT_BID + ";" + userId + ";" + itemId + ";" + itemBid;
 
             SocketInfo newUser = getUser(userId);
             SocketInfo oldUser = getUser(previousHidBidUserId);

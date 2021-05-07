@@ -1,8 +1,12 @@
-package auctionHouse;
+/**
+ * CS 351L Project 5 - Distributed Auction Houses
+ * Pun Chhetri, Isha Chauhan, John Cooper, John Tran
+ *
+ * The thread that listens for incoming requests for users
+ * to connect to the auction house
+ */
 
-import bank.Bank;
-import common.BankAccount;
-import common.MessageEnum;
+package auctionHouse;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -10,10 +14,17 @@ import java.net.Socket;
 import java.util.List;
 
 public class AuctionHouseListener extends Thread{
+    // The server listening for requests to join
     private ServerSocket server;
+    // The list of the socket-info structures for every joined user
     private List<AuctionHouse.SocketInfo> userList;
+    // true if the thread should run
     private boolean run;
 
+    /**
+     * @param server The server to listen for requests through
+     * @param userList The list of user socketInfo's
+     */
     public AuctionHouseListener(ServerSocket server, List<AuctionHouse.SocketInfo> userList) {
         this.server = server;
         this.userList = userList;
@@ -25,8 +36,9 @@ public class AuctionHouseListener extends Thread{
     public void run() {
         while(run) {
             try {
-                //System.out.println(server);
+                // Waits for incoming requests
                 Socket socket = server.accept();
+                // Prints debug information
                 System.out.println("Accepted user socket");
                 System.out.println("Socket Inet Address Host name: " + socket.getInetAddress().getHostName());
                 System.out.println("Socket Inet Address Host address: " + socket.getInetAddress().getHostAddress());
@@ -38,6 +50,7 @@ public class AuctionHouseListener extends Thread{
                 OutputStream output = socket.getOutputStream();
                 PrintWriter writer = new PrintWriter(output, true);
 
+                // Read in the userId of the user sending the message
                 String line = reader.readLine();
                 System.out.println(line);
                 String[] split = line.split(";");
@@ -54,6 +67,9 @@ public class AuctionHouseListener extends Thread{
         }
     }
 
+    /**
+     * Stops the thread running
+     */
     public synchronized void stopRunning() {
         run = false;
     }
