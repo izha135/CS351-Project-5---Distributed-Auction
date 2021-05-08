@@ -61,7 +61,39 @@ to the lists that the ``Bank`` iterates over.
 
 ### Auction House
 
+This package contains all the logic behind the Auction 
+Houses for this project. 
 
+#### AuctionHouse
+
+This class is the core of the Auction House. This
+allows for multiple users to connect to it, and also
+connects to the one static ``Bank``. Facilitates all
+interactions with the items being auctioned. Creates
+some asynchronous messages whenever an item was sold.
+The ``Bank`` is responsible for informing users
+of when an item has been won and is no longer up
+for bidding.
+
+#### AuctionHouseListener
+
+Listens for incoming requests to join the auction
+from the users. Once joined, the new socket info
+is added to the list of users the ``AuctionHouse``
+iterates through, checking for new messages. As 
+this project is small, putting each of these 
+listeners on a separate thread seems a little
+overkill (to me, John C). 
+
+#### TimerThread
+
+This is a thread that counts down for thirty
+seconds once it starts. These timers can always
+be restarted. A timer is created for each item
+being sold once any user has bid on it. This
+timer executes a function in its parent 
+``AuctionHouse`` to indicate the item needs
+to be sold.
 
 ### User
 

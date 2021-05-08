@@ -13,6 +13,7 @@ import common.Item;
 import common.MessageEnum;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -61,19 +62,24 @@ public class Bank{
             boolean run = true;
             while(run) {
                 System.out.print("");
-                for(int i = 0; i < userList.size(); i++) {
-                    SocketInfo socket = userList.get(i);
-                    if(socket.reader.ready()) {
-                        text = socket.reader.readLine();
-                        handleUserCommand(text);
+                try {
+                    for(int i = 0; i < userList.size(); i++) {
+                        SocketInfo socket = userList.get(i);
+                        if(socket.reader.ready()) {
+                            text = socket.reader.readLine();
+                            handleUserCommand(text);
+                        }
+                    }
+                    for(int i = 0; i < houseList.size(); i++) {
+                        SocketInfo socket = houseList.get(i);
+                        if(socket.reader.ready()) {
+                            text = socket.reader.readLine();
+                            handleHouseCommand(text);
+                        }
                     }
                 }
-                for(int i = 0; i < houseList.size(); i++) {
-                    SocketInfo socket = houseList.get(i);
-                    if(socket.reader.ready()) {
-                        text = socket.reader.readLine();
-                        handleHouseCommand(text);
-                    }
+                catch(IndexOutOfBoundsException ex) {
+                    // Just ignore it. This is a problem with sockets exiting
                 }
                 if(scan.ready()) {
                     String inputString = scan.readLine();
@@ -84,8 +90,8 @@ public class Bank{
                 }
             }
         }
-        catch (Exception e) {
-            e.printStackTrace();
+        catch (IOException ex) {
+            ex.printStackTrace();
         }
     }
 
