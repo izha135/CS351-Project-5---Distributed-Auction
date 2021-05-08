@@ -66,7 +66,7 @@ public class GuiStuff {
                                            boolean initialBid) {
         double blockAmount;
         if (userBlockAmountCustomLabel.getOutputMessage().isEmpty()) {
-            blockAmount = 0.0;
+            blockAmount = 0.00;
         } else {
             blockAmount =
                     Double.parseDouble(
@@ -82,6 +82,22 @@ public class GuiStuff {
         userBlockAmountCustomLabel.updateLabel(
                 Double.toString(blockAmount));
         userBlockAmountLabel.setText(userBlockAmountCustomLabel.getText());
+    }
+
+    public void addFundsToBalanceLabel(double bidAmount) {
+        double accountBalance =
+                userAccountBalanceCustomLabel.getDoubleOutputMessage();
+        accountBalance += bidAmount;
+
+        updateUserAccountBalanceLabel(accountBalance);
+    }
+
+    public void removeFundsFromBalanceLabel(double bidAmount) {
+        double accountBalance =
+                userAccountBalanceCustomLabel.getDoubleOutputMessage();
+        accountBalance -= bidAmount;
+
+        updateUserAccountBalanceLabel(accountBalance);
     }
 
     public void updateCurrentAuctionHouseLabel(
@@ -115,5 +131,11 @@ public class GuiStuff {
         // FIXME: don't know how new line will affect the text area...
 
         bidHistoryTextArea.setText(currentBidHistory);
+    }
+
+    public void resetLabel(Label label) {
+        CustomLabel customLabel = new CustomLabel(label);
+        customLabel.resetLabel();
+        label.setText(customLabel.getText());
     }
 }

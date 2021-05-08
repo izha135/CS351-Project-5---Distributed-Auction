@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 public class UserGUIApp extends Application {
     public static int bankPort;
     public static int housePort;
+    public static String username;
 
     @Override
     public void start(Stage primaryStage) {
@@ -40,6 +41,7 @@ public class UserGUIApp extends Application {
     public static void main(String[] args) {
         bankPort = Integer.parseInt(args[0]);
         housePort = Integer.parseInt(args[1]);
+        username = args[2];
         launch(args);
     }
 }

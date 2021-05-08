@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 public class CustomLabel extends Label {
     private String initialMessage;
     private String outputMessage;
+    private final String emptyMessage = "[EMPTY]";
 
     /**
      * Constructor for CustomLabel
@@ -36,6 +37,12 @@ public class CustomLabel extends Label {
         this.setText(initialMessage + " " + this.outputMessage);
     }
 
+    public void resetLabel() {
+        outputMessage = emptyMessage;
+
+        this.setText(initialMessage + " " + outputMessage);
+    }
+
     public String getOutputMessage() {
         return outputMessage;
     }
@@ -46,5 +53,13 @@ public class CustomLabel extends Label {
         }
 
         return Integer.parseInt(outputMessage);
+    }
+
+    public double getDoubleOutputMessage() {
+        if (outputMessage.isEmpty()) {
+            return 0.00;
+        }
+
+        return Double.parseDouble(outputMessage);
     }
 }

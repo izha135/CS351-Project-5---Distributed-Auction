@@ -13,7 +13,7 @@ public class UserGUIReaderListener extends Thread{
     private PrintWriter writer;
     private boolean run;
 
-    private List<FullMessage> fullMessagesActionList;
+    private final List<FullMessage> fullMessagesActionList;
 
     public UserGUIReaderListener(Socket socket,
                                  BufferedReader reader,
@@ -34,13 +34,17 @@ public class UserGUIReaderListener extends Thread{
                 if(reader.ready()) {
                     String message = reader.readLine();
                     // FIXME: Invoke functions based on input
+                    // FIXME: move to other listener...
 
                     System.out.println();
                     System.out.println("Message received: " + message);
 
                     FullMessage fullMessage =
                             getFullMessageFromListener(message);
-                    fullMessagesActionList.add(fullMessage);
+
+                    synchronized (fullMessagesActionList) {
+                        fullMessagesActionList.add(fullMessage);
+                    }
                 }
             }
             catch (Exception e) {

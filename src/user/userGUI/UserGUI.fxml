@@ -12,13 +12,16 @@
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="user.userGUI.UserGUIController">
    <top>
-      <VBox alignment="TOP_CENTER" BorderPane.alignment="CENTER">
+      <VBox alignment="TOP_CENTER" spacing="10.0" BorderPane.alignment="CENTER">
          <children>
             <Label fx:id="userIDAccountLabel" text="User/Account #" />
             <Label fx:id="userAccountBalanceLabel" text="User Account Balance: $" />
             <Label fx:id="userBlockAmountLabel" text="Blocked Amount from Balance: $" />
-            <Button fx:id="userExitButton" mnemonicParsing="false" text="Exit" />
+            <Button fx:id="userExitButton" mnemonicParsing="false" text="Exit Program" />
          </children>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
       </VBox>
    </top>
    <center>
@@ -34,6 +37,20 @@
                   <Label text="Amount to bid:" />
                   <TextField fx:id="userBidAmountTextField" />
                   <Button fx:id="bidButton" mnemonicParsing="false" text="Bid" />
+               </children>
+            </HBox>
+            <Label text="Refresh Buttons" />
+            <HBox spacing="10.0">
+               <children>
+                  <Button fx:id="refreshHouseListButton" mnemonicParsing="false" text="Refresh House List" />
+                  <Button fx:id="refreshItemListButton" mnemonicParsing="false" text="Refresh Item List (for current House)" />
+               </children>
+            </HBox>
+            <Label text="Exit Buttons" />
+            <HBox spacing="10.0">
+               <children>
+                  <Button fx:id="exitHouseButton" mnemonicParsing="false" text="Exit House" />
+                  <Button mnemonicParsing="false" text="Test" />
                </children>
             </HBox>
             <Label fx:id="bidHistoryLabel" text="Bid History:" wrapText="true" />

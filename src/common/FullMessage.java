@@ -25,4 +25,9 @@ public class FullMessage {
     public List<String> getMessageArgs() {
         return messageArgs;
     }
+
+    @Override
+    public String toString() {
+        return messageEnum.name() + " " + messageArgs;
+    }
 }
