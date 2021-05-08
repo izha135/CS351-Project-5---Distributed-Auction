@@ -167,9 +167,9 @@ public class UserGUIController {
         exitHouseButton.setOnAction(this::exitHouseButtonOnAction);
 
         // TODO: implement REFRESH buttons
-        //refreshHouseListButton.setOnAction();
+        refreshHouseListButton.setOnAction(event -> askAuctionHouseList());
 
-        //refreshItemListButton.setOnAction();
+        refreshItemListButton.setOnAction(event -> askHouseItemList());
 
         //}
         //catch (Exception e) {
@@ -451,6 +451,9 @@ public class UserGUIController {
         }
 
         assert currentBid != null;
+        // FIXME: IMPORTANT
+        currentBid.updateBidMessageEnum(bidMessageEnum);
+
         double bidAmount = currentBid.getBidAmount();
 
         bidStatusAlert =
@@ -496,6 +499,9 @@ public class UserGUIController {
         }
 
         assert currentBid != null;
+        // FIXME: IMPORTANT
+        currentBid.updateBidMessageEnum(bidMessageEnum);
+
         double bidAmount = currentBid.getBidAmount();
 
         bidStatusAlert =
