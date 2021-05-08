@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.List;
 
-public class UserGUIReaderListener extends Thread{
+public class UserGUIReaderListener extends Thread {
     private Socket socket;
     private BufferedReader reader;
     private PrintWriter writer;

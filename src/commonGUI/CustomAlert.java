@@ -13,4 +13,9 @@ public class CustomAlert extends Alert {
         this.titleAlert = titleAlert;
         this.contextTextAlert = contextTextAlert;
     }
+
+    public Runnable showAlert() {
+        this.show();
+        return null;
+    }
 }

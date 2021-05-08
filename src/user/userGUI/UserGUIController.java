@@ -2,6 +2,7 @@ package user.userGUI;
 
 import common.*;
 import commonGUI.*;
+import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -157,8 +158,6 @@ public class UserGUIController {
                 userBlockAmountLabel,
                 bidHistoryTextArea);
 
-        initializeLabels();
-
         bidButton.setOnAction(event -> bidButtonOnAction());
 
         // don't know what the difference is with lambda and method reference...
@@ -177,7 +176,7 @@ public class UserGUIController {
         //}
     }
 
-    private void initializeLabels() {
+    private Runnable initializeLabels() {
         guiStuff.updateUserIDAccountLabel(userID);
         guiStuff.updateUserAccountBalanceLabel(
                 userBankAccount.getBalance());
@@ -185,6 +184,7 @@ public class UserGUIController {
         guiStuff.resetLabel(currentAuctionHouseLabel);
         guiStuff.resetLabel(currentItemSelectedLabel);
         guiStuff.updateUserBlockAmountLabel(0.00, true);
+        return null;
     }
 
     private void updateHouseListTreeView() {
@@ -863,6 +863,12 @@ public class UserGUIController {
 
     // get the user id
     private void getUserID(FullMessage userIDMessage) {
+        // FIXME: just test for GUI instantiation in separate thread
+//        CustomAlert customAlert =
+//                new CustomAlert(Alert.AlertType.CONFIRMATION, "Something",
+//                        "Something");
+//        Platform.runLater(customAlert.showAlert());
+
         System.out.println();
         System.out.println("Setting up user ID...");
 
@@ -874,6 +880,10 @@ public class UserGUIController {
         // account ID is the same as the user ID
         userBankAccount = new BankAccount(INITIAL_BALANCE,
                 userID);
+
+        // FIXME: changed where the labels are initialized
+        Platform.runLater(initializeLabels());
+        //initializeLabels();
 
         System.out.println("Finished...user ID: " + userID);
         System.out.println("Initialized bank account with initial balance: $"
@@ -1312,6 +1322,7 @@ public class UserGUIController {
         outBidAlert.show();
 
         // TODO: update bid history
+
         guiStuff.updateBidHistoryTextArea(Bid.getAlternateBidString(
                 messageEnum, houseID, itemName,
                 itemID, winnerUsername,
@@ -1320,29 +1331,45 @@ public class UserGUIController {
 
     private void getErrorMessage(FullMessage currentFullMessage) {
         MessageEnum messageEnum = currentFullMessage.getMessageEnum();
-        CustomAlert errorAlert = new CustomAlert(Alert.AlertType.ERROR,
-                messageEnum.name(),
+
+//        CustomAlert errorAlert = new CustomAlert(Alert.AlertType.ERROR,
+//                messageEnum.name(),
+//                "The following error message was received" +
+//                "...\n" + currentFullMessage);
+//        errorAlert.show();
+
+        showAlert(Alert.AlertType.ERROR, messageEnum.name(),
                 "The following error message was received" +
-                "...\n" + currentFullMessage);
-        errorAlert.show();
+                        "...\n" + currentFullMessage);
     }
 
     private void getUnknownMessage(FullMessage currentFullMessage) {
         //MessageEnum messageEnum = currentFullMessage.getMessageEnum();
-        CustomAlert unknownAlert = new CustomAlert(Alert.AlertType.ERROR,
-                "UNKNOWN",
+//        CustomAlert unknownAlert = new CustomAlert(Alert.AlertType.ERROR,
+//                "UNKNOWN",
+//                "The following unknown message was received" +
+//                        "...\n" + currentFullMessage);
+//        unknownAlert.show();
+
+        showAlert(Alert.AlertType.ERROR, "UNKNOWN",
                 "The following unknown message was received" +
                         "...\n" + currentFullMessage);
-        unknownAlert.show();
     }
 
     private void getBankCanExitMessage(FullMessage currentFullMessage) {
+//        MessageEnum messageEnum = currentFullMessage.getMessageEnum();
+//        CustomAlert bankExitAlert = new CustomAlert(
+//                Alert.AlertType.CONFIRMATION,
+//                messageEnum.name() + " Bank",
+//                "You can now exit the bank.");
+//        bankExitAlert.showAlert();
+
         MessageEnum messageEnum = currentFullMessage.getMessageEnum();
-        CustomAlert bankExitAlert = new CustomAlert(
+        showAlert(
                 Alert.AlertType.CONFIRMATION,
                 messageEnum.name() + " Bank",
-                "You can now exit the bank.");
-        bankExitAlert.show();
+                "You are now disconnected with the " +
+                        "You can now exit the bank.");
 
         // TODO: clear listeners and action list
         bankReaderListener.stopRunning();
@@ -1359,22 +1386,33 @@ public class UserGUIController {
         List<String> houseCanExitArgs = currentFullMessage.getMessageArgs();
         int houseID = Integer.parseInt(houseCanExitArgs.get(0));
 
+//        MessageEnum messageEnum = currentFullMessage.getMessageEnum();
+//        CustomAlert bankExitAlert = new CustomAlert(
+//                Alert.AlertType.CONFIRMATION,
+//                messageEnum.name() + " Auction House",
+//                "You are now disconnected with the " +
+//                        "current auction house.");
+//        bankExitAlert.show();
+
         MessageEnum messageEnum = currentFullMessage.getMessageEnum();
-        CustomAlert bankExitAlert = new CustomAlert(
+        showAlert(
                 Alert.AlertType.CONFIRMATION,
                 messageEnum.name() + " Auction House",
                 "You are now disconnected with the " +
                         "current auction house.");
-        bankExitAlert.show();
 
         // TODO: update labels...
         currentAuctionHouseUser = null;
 
-        guiStuff.resetLabel(currentAuctionHouseLabel);
+        Platform.runLater(
+        guiStuff.resetLabel(currentAuctionHouseLabel));
+        //guiStuff.resetLabel(currentAuctionHouseLabel)
 
         // TODO: current item selected and item list...
         currentItemSelected = null;
-        guiStuff.resetLabel(currentItemSelectedLabel);
+        Platform.runLater(
+                guiStuff.resetLabel(currentItemSelectedLabel));
+        //guiStuff.resetLabel(currentItemSelectedLabel);
 
         // TODO: clear the children (items) of ALL HOUSES
         for (TreeItem<String> houseChild : houseTreeItemList) {
@@ -1424,5 +1462,15 @@ public class UserGUIController {
 
         System.out.println();
         System.out.println("Auction House List setup successful");
+    }
+
+    private Runnable showAlert(Alert.AlertType alertType, String titleAlert,
+                               String contextStringAlert) {
+        CustomAlert bankExitAlert = new CustomAlert(
+                alertType,
+                titleAlert,
+                contextStringAlert);
+        bankExitAlert.show();
+        return null;
     }
 }

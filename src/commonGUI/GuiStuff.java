@@ -133,9 +133,10 @@ public class GuiStuff {
         bidHistoryTextArea.setText(currentBidHistory);
     }
 
-    public void resetLabel(Label label) {
+    public Runnable resetLabel(Label label) {
         CustomLabel customLabel = new CustomLabel(label);
         customLabel.resetLabel();
         label.setText(customLabel.getText());
+        return null;
     }
 }
