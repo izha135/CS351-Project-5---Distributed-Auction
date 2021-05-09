@@ -51,74 +51,119 @@ public class GuiStuff {
     // FIXME: update on startup...
     // shouldn't be needed except for the initial startup...
     public void updateUserIDAccountLabel(int userID) {
-        Platform.runLater(() -> {
-            userIDAccountCustomLabel.updateLabel(
-                    Integer.toString(userID));
-            userIDAccountLabel.setText(userIDAccountCustomLabel.getText());
-        });
+//        Platform.runLater(() -> {
+//            userIDAccountCustomLabel.updateLabel(
+//                    Integer.toString(userID));
+//            userIDAccountLabel.setText(userIDAccountCustomLabel.getText());
+//        });
+
+        userIDAccountCustomLabel.updateLabel(
+                Integer.toString(userID));
+        userIDAccountLabel.setText(userIDAccountCustomLabel.getText());
     }
 
     public void updateUserAccountBalanceLabel(double accountBalance) {
-        Platform.runLater(() -> {
-            userAccountBalanceCustomLabel.updateLabel(
-                    Double.toString(accountBalance));
-            userAccountBalanceLabel.setText(
-                    userAccountBalanceCustomLabel.getText());
-        });
+//        Platform.runLater(() -> {
+//            userAccountBalanceCustomLabel.updateLabel(
+//                    Double.toString(accountBalance));
+//            userAccountBalanceLabel.setText(
+//                    userAccountBalanceCustomLabel.getText());
+//        });
+
+        userAccountBalanceCustomLabel.updateLabel(
+                Double.toString(accountBalance));
+        userAccountBalanceLabel.setText(
+                userAccountBalanceCustomLabel.getText());
     }
 
     public void updateUserBlockAmountLabel(double bidAmount,
                                            boolean initialBid) {
-        Platform.runLater(() -> {
-            double blockAmount;
-            if (userBlockAmountCustomLabel.getOutputMessage().isEmpty()) {
-                blockAmount = 0.00;
-            } else {
-                blockAmount =
-                        Double.parseDouble(
-                                userBlockAmountCustomLabel.getOutputMessage());
-            }
+//        Platform.runLater(() -> {
+//            double blockAmount;
+//            if (userBlockAmountCustomLabel.getOutputMessage().isEmpty()) {
+//                blockAmount = 0.00;
+//            } else {
+//                blockAmount =
+//                        Double.parseDouble(
+//                                userBlockAmountCustomLabel.getOutputMessage());
+//            }
+//
+//            if (initialBid) {
+//                blockAmount += bidAmount;
+//            } else {
+//                blockAmount -= bidAmount;
+//            }
+//
+//            userBlockAmountCustomLabel.updateLabel(
+//                    Double.toString(blockAmount));
+//            userBlockAmountLabel.setText(userBlockAmountCustomLabel.getText());
+//        });
 
-            if (initialBid) {
-                blockAmount += bidAmount;
-            } else {
-                blockAmount -= bidAmount;
-            }
+        double blockAmount;
+        if (userBlockAmountCustomLabel.getOutputMessage().isEmpty()) {
+            blockAmount = 0.00;
+        } else {
+            blockAmount =
+                    Double.parseDouble(
+                            userBlockAmountCustomLabel.getOutputMessage());
+        }
 
-            userBlockAmountCustomLabel.updateLabel(
-                    Double.toString(blockAmount));
-            userBlockAmountLabel.setText(userBlockAmountCustomLabel.getText());
-        });
+        if (initialBid) {
+            blockAmount += bidAmount;
+        } else {
+            blockAmount -= bidAmount;
+        }
+
+        userBlockAmountCustomLabel.updateLabel(
+                Double.toString(blockAmount));
+        userBlockAmountLabel.setText(userBlockAmountCustomLabel.getText());
     }
 
     public void addFundsToBalanceLabel(double bidAmount) {
-        Platform.runLater(() -> {
-            double accountBalance =
-                    userAccountBalanceCustomLabel.getDoubleOutputMessage();
-            accountBalance += bidAmount;
+//        Platform.runLater(() -> {
+//            double accountBalance =
+//                    userAccountBalanceCustomLabel.getDoubleOutputMessage();
+//            accountBalance += bidAmount;
+//
+//            updateUserAccountBalanceLabel(accountBalance);
+//        });
 
-            updateUserAccountBalanceLabel(accountBalance);
-        });
+        double accountBalance =
+                userAccountBalanceCustomLabel.getDoubleOutputMessage();
+        accountBalance += bidAmount;
+
+        updateUserAccountBalanceLabel(accountBalance);
     }
 
     public void removeFundsFromBalanceLabel(double bidAmount) {
-        Platform.runLater(() -> {
-            double accountBalance =
-                    userAccountBalanceCustomLabel.getDoubleOutputMessage();
-            accountBalance -= bidAmount;
+//        Platform.runLater(() -> {
+//            double accountBalance =
+//                    userAccountBalanceCustomLabel.getDoubleOutputMessage();
+//            accountBalance -= bidAmount;
+//
+//            updateUserAccountBalanceLabel(accountBalance);
+//        });
 
-            updateUserAccountBalanceLabel(accountBalance);
-        });
+        double accountBalance =
+                userAccountBalanceCustomLabel.getDoubleOutputMessage();
+        accountBalance -= bidAmount;
+
+        updateUserAccountBalanceLabel(accountBalance);
     }
 
     public void updateCurrentAuctionHouseLabel(
             AuctionHouseUser auctionHouseUser) {
-        Platform.runLater(() -> {
-            currentAuctionHouseCustomLabel.updateLabel(
-                    auctionHouseUser.toString());
-            currentAuctionHouseLabel.setText(
-                    currentAuctionHouseCustomLabel.getText());
-        });
+//        Platform.runLater(() -> {
+//            currentAuctionHouseCustomLabel.updateLabel(
+//                    auctionHouseUser.toString());
+//            currentAuctionHouseLabel.setText(
+//                    currentAuctionHouseCustomLabel.getText());
+//        });
+
+        currentAuctionHouseCustomLabel.updateLabel(
+                auctionHouseUser.toString());
+        currentAuctionHouseLabel.setText(
+                currentAuctionHouseCustomLabel.getText());
     }
 
     public void updateCurrentItemSelectedLabel(Item item) {
@@ -146,20 +191,30 @@ public class GuiStuff {
     }
 
     public void updateBidHistoryTextArea(String bidEntry) {
-        Platform.runLater(() -> {
-            String currentBidHistory = bidHistoryTextArea.getText();
-            currentBidHistory += bidEntry + "\n";
-            // FIXME: don't know how new line will affect the text area...
+//        Platform.runLater(() -> {
+//            String currentBidHistory = bidHistoryTextArea.getText();
+//            currentBidHistory += bidEntry + "\n";
+//            // FIXME: don't know how new line will affect the text area...
+//
+//            bidHistoryTextArea.setText(currentBidHistory);
+//        });
 
-            bidHistoryTextArea.setText(currentBidHistory);
-        });
+        String currentBidHistory = bidHistoryTextArea.getText();
+        currentBidHistory += bidEntry + "\n";
+        // FIXME: don't know how new line will affect the text area...
+
+        bidHistoryTextArea.setText(currentBidHistory);
     }
 
     public void resetLabel(Label label) {
-        Platform.runLater(() -> {
-            CustomLabel customLabel = new CustomLabel(label);
-            customLabel.resetLabel();
-            label.setText(customLabel.getText());
-        });
+//        Platform.runLater(() -> {
+//            CustomLabel customLabel = new CustomLabel(label);
+//            customLabel.resetLabel();
+//            label.setText(customLabel.getText());
+//        });
+
+        CustomLabel customLabel = new CustomLabel(label);
+        customLabel.resetLabel();
+        label.setText(customLabel.getText());
     }
 }

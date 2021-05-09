@@ -7,30 +7,36 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
-public class UserGUIReaderListener extends Thread {
+public class UserGUIReaderTimer {
+    private Timer timer;
     private Socket socket;
     private BufferedReader reader;
     private PrintWriter writer;
-    private boolean run;
 
     private final List<FullMessage> fullMessagesActionList;
 
-    public UserGUIReaderListener(Socket socket,
-                                 BufferedReader reader,
-                                 PrintWriter writer,
-                                 List<FullMessage> fullMessagesActionList) {
+    public UserGUIReaderTimer(Socket socket, BufferedReader reader,
+                              PrintWriter writer,
+                              List<FullMessage> fullMessagesActionList) {
+        timer = new Timer();
+
         this.socket = socket;
         this.reader = reader;
         this.writer = writer;
-        this.run = true;
 
         this.fullMessagesActionList = fullMessagesActionList;
+
+        timer.scheduleAtFixedRate(new UserGUIReaderTimerTask(),
+                0, 250);
     }
 
-    @Override
-    public void run() {
-        while(run) {
+    private class UserGUIReaderTimerTask extends TimerTask {
+
+        @Override
+        public void run() {
             Platform.runLater(() -> {
                 try {
                     if(reader.ready()) {
@@ -54,13 +60,13 @@ public class UserGUIReaderListener extends Thread {
                 }
             });
         }
+
+        private FullMessage getFullMessageFromListener(String message) {
+            return new FullMessage(message);
+        }
     }
 
     public void stopRunning() {
-        run = false;
-    }
-
-    private FullMessage getFullMessageFromListener(String message) {
-        return new FullMessage(message);
+        timer.cancel();
     }
 }

@@ -3,8 +3,6 @@ package user.userGUI;
 import common.*;
 import commonGUI.*;
 import javafx.application.Platform;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -18,10 +16,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static bank.BankListener.*;
 import static common.MessageEnum.*;
@@ -113,8 +108,14 @@ public class UserGUIController {
     private UserGUIReaderListener bankReaderListener;
     private UserGUIActionListener bankActionListener;
 
+    private UserGUIReaderTimer bankReaderTimer;
+    private UserGUIActionTimer bankActionTimer;
+
     private UserGUIReaderListener houseReaderListener;
     private UserGUIActionListener houseActionListener;
+
+    private UserGUIReaderTimer houseReaderTimer;
+    private UserGUIActionTimer houseActionTimer;
 
     @FXML
     public void initialize() throws InterruptedException {
@@ -124,6 +125,9 @@ public class UserGUIController {
         //try (Socket socket = new Socket(hostName, port);
         //     PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
         //     BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));){
+
+        // FIXME: moved all calls of Platform.runLater to here...
+        // FIXME: might need to add it to the listeners as well...
 
         // FIXME: now with two separate IO, maybe use a file or something
         //  (for the house) for testing...
@@ -575,16 +579,26 @@ public class UserGUIController {
                     new InputStreamReader(bankSocket.getInputStream()));
 
             // initialize the bank reader listener and action listener
-            bankReaderListener =
-                    new UserGUIReaderListener(bankSocket, bankReader,
-                            bankWriter,
-                            bankMessagesActionList);
-            bankReaderListener.start();
+//            bankReaderListener =
+//                    new UserGUIReaderListener(bankSocket, bankReader,
+//                            bankWriter,
+//                            bankMessagesActionList);
+//            bankReaderListener.start();
+//
+//            bankActionListener =
+//                    new UserGUIActionListener(bankSocket, bankReader,
+//                            bankWriter, bankMessagesActionList);
+//            bankActionListener.start();
 
-            bankActionListener =
-                    new UserGUIActionListener(bankSocket, bankReader,
-                            bankWriter, bankMessagesActionList);
-            bankActionListener.start();
+            // FIXME: replace above with timers instead...
+            bankReaderTimer = new UserGUIReaderTimer(bankSocket,
+                    bankReader,
+                    bankWriter,
+                    bankMessagesActionList);
+
+            bankActionTimer = new UserGUIActionTimer(bankSocket,
+                    bankReader,
+                    bankWriter, bankMessagesActionList);
 
             System.out.println("Connection successful");
 
@@ -621,15 +635,24 @@ public class UserGUIController {
             // initialize the house reader listener and action listener
             // TODO: make sure to clear listeners and action list when making
             //  new connection...
-            houseReaderListener = new UserGUIReaderListener(houseSocket,
-                    houseReader, houseWriter,
-                    houseMessagesActionList);
-            houseReaderListener.start();
+//            houseReaderListener = new UserGUIReaderListener(houseSocket,
+//                    houseReader, houseWriter,
+//                    houseMessagesActionList);
+//            houseReaderListener.start();
+//
+//            houseActionListener = new UserGUIActionListener(houseSocket,
+//                    houseReader, houseWriter,
+//                    houseMessagesActionList);
+//            houseActionListener.start();
 
-            houseActionListener = new UserGUIActionListener(houseSocket,
+            // FIXME: replace above with timers instead...
+            houseReaderTimer = new UserGUIReaderTimer(houseSocket,
                     houseReader, houseWriter,
                     houseMessagesActionList);
-            houseActionListener.start();
+
+            houseActionTimer = new UserGUIActionTimer(houseSocket,
+                    houseReader, houseWriter,
+                    houseMessagesActionList);
 
             System.out.println("Connection successful");
 
@@ -664,11 +687,15 @@ public class UserGUIController {
     }
 
     private void clearItemsFromAllHouseTreeItem() {
-        Platform.runLater(() -> {
-            for (CustomAuctionHouseTreeItem houseTreeItem : houseTreeItemList) {
-                houseTreeItem.getChildren().clear();
-            }
-        });
+//        Platform.runLater(() -> {
+//            for (CustomAuctionHouseTreeItem houseTreeItem : houseTreeItemList) {
+//                houseTreeItem.getChildren().clear();
+//            }
+//        });
+
+        for (CustomAuctionHouseTreeItem houseTreeItem : houseTreeItemList) {
+            houseTreeItem.getChildren().clear();
+        }
     }
 
     private void getHouseItemList(FullMessage houseItemListFullMessage) {
@@ -937,8 +964,8 @@ public class UserGUIController {
                 userID);
 
         // FIXME: changed where the labels are initialized
-        Platform.runLater(this::initializeLabels);
-        //initializeLabels();
+        //Platform.runLater(this::initializeLabels);
+        initializeLabels();
 
         System.out.println("Finished...user ID: " + userID);
         System.out.println("Initialized bank account with initial balance: $"
@@ -1153,91 +1180,195 @@ public class UserGUIController {
         public void updateItem(String itemString, boolean empty) {
             // Maybe this was why there was some inaccurate
             // updating...(EVERYTHING has to be in the runLater())
-            Platform.runLater(() -> {
-                super.updateItem(itemString, empty) ;
+//            Platform.runLater(() -> {
+//                super.updateItem(itemString, empty) ;
+//
+//                if (empty) {
+//                    setText(null);
+//                } else {
+//                    setText(itemString);
+//
+//                    TreeItem<String> treeItem = getTreeItem();
+//
+////                System.out.println();
+////                System.out.println("Updating tree item...");
+////                System.out.println("Tree item " + treeItem);
+//
+//                    // maybe this will work...
+//                    // FIXME: add if(connectContextMenu.getItems().isEmpty())
+//                    if (treeItem instanceof CustomAuctionHouseTreeItem) {
+//                        if (connectContextMenu.getItems().isEmpty()) {
+//                            //System.out.println("Auction House: Tree Cell...");
+//
+//                            MenuItem connectMenuItem = new MenuItem("Connect to this Auction " +
+//                                    "House");
+//                            connectContextMenu.getItems().add(connectMenuItem);
+//
+////                        System.out.println();
+////                        System.out.println("Setting the context menu in the " +
+////                                "update");
+//
+//                            setContextMenu(connectContextMenu);
+//
+//                            connectMenuItem.setOnAction(event -> {
+//                                // send request to connect to the chosen auction house
+////                        String[] houseTreeItemArgs = treeItem.getValue().split(" ");
+////                        String houseID = houseTreeItemArgs[1];
+//
+//                                // FIXME: changed how the houseID is gotten
+//                                CustomAuctionHouseTreeItem currentHouseTreeItem =
+//                                        (CustomAuctionHouseTreeItem) treeItem;
+//                                AuctionHouseUser auctionHouseUser =
+//                                        currentHouseTreeItem.getAuctionHouseUser();
+//                                int parseHouseID =
+//                                        auctionHouseUser.getHouseID();
+//
+//                                for (CustomAuctionHouseTreeItem houseTreeItem : houseTreeItemList) {
+//                                    if (houseTreeItem.checkID(parseHouseID)) {
+//                                        currentAuctionHouseTreeItem = houseTreeItem;
+//                                        currentAuctionHouseUser =
+//                                                currentAuctionHouseTreeItem.getAuctionHouseUser();
+//                                        break;
+//                                    }
+//                                }
+//
+//                                //TODO: update label, get items
+////                        AuctionHouseUser auctionHouseUser =
+////                                currentAuctionHouseTreeItem.getAuctionHouseUser();
+//
+//                                String houseHostName = currentAuctionHouseUser.getHouseHostName();
+//
+//                                initializeHouseConnection(houseHostName);
+//
+//                                //updateHouseItemList();
+//                                askHouseItemList();
+//
+//                                guiStuff.updateCurrentAuctionHouseLabel(
+//                                        currentAuctionHouseUser);
+//                            });
+//                        } else {
+////                        System.out.println();
+////                        System.out.println("Auction house connect context " +
+////                                "menu already initialized");
+//                        }
+//                    } else if (treeItem instanceof CustomItemTreeItem) {
+//                        System.out.println("Item type: Tree Cell...");
+//
+//                        CustomItemTreeItem customItemTreeItem =
+//                                (CustomItemTreeItem) treeItem;
+//
+//                        Item item = customItemTreeItem.getItem();
+//
+//                        System.out.println("Current item selected: " + item);
+//
+//                        this.setOnMousePressed(event -> itemMousePress(event,
+//                                item));
+//
+//                        guiStuff.updateCurrentItemSelectedLabel(item);
+//
+////                    if (treeItem.isLeaf()
+////                            && getTreeItem().getParent() != null){
+////
+////                    } else {
+////                        System.out.println();
+////                        System.out.println("No update...");
+////                    }
+//                    }
+//
+////                if (treeItem instanceof CustomAuctionHouseTreeItem) {
+////                    System.out.println();
+////                    System.out.println("Setting the context menu in the " +
+////                            "update");
+////
+////                    setContextMenu(connectContextMenu);
+////                }
+//                }
+//            });
 
-                if (empty) {
-                    setText(null);
-                } else {
-                    setText(itemString);
+            super.updateItem(itemString, empty) ;
 
-                    TreeItem<String> treeItem = getTreeItem();
+            if (empty) {
+                setText(null);
+            } else {
+                setText(itemString);
+
+                TreeItem<String> treeItem = getTreeItem();
 
 //                System.out.println();
 //                System.out.println("Updating tree item...");
 //                System.out.println("Tree item " + treeItem);
 
-                    // maybe this will work...
-                    // FIXME: add if(connectContextMenu.getItems().isEmpty())
-                    if (treeItem instanceof CustomAuctionHouseTreeItem) {
-                        if (connectContextMenu.getItems().isEmpty()) {
-                            //System.out.println("Auction House: Tree Cell...");
+                // maybe this will work...
+                // FIXME: add if(connectContextMenu.getItems().isEmpty())
+                if (treeItem instanceof CustomAuctionHouseTreeItem) {
+                    if (connectContextMenu.getItems().isEmpty()) {
+                        //System.out.println("Auction House: Tree Cell...");
 
-                            MenuItem connectMenuItem = new MenuItem("Connect to this Auction " +
-                                    "House");
-                            connectContextMenu.getItems().add(connectMenuItem);
+                        MenuItem connectMenuItem = new MenuItem("Connect to this Auction " +
+                                "House");
+                        connectContextMenu.getItems().add(connectMenuItem);
 
 //                        System.out.println();
 //                        System.out.println("Setting the context menu in the " +
 //                                "update");
 
-                            setContextMenu(connectContextMenu);
+                        setContextMenu(connectContextMenu);
 
-                            connectMenuItem.setOnAction(event -> {
-                                // send request to connect to the chosen auction house
+                        connectMenuItem.setOnAction(event -> {
+                            // send request to connect to the chosen auction house
 //                        String[] houseTreeItemArgs = treeItem.getValue().split(" ");
 //                        String houseID = houseTreeItemArgs[1];
 
-                                // FIXME: changed how the houseID is gotten
-                                CustomAuctionHouseTreeItem currentHouseTreeItem =
-                                        (CustomAuctionHouseTreeItem) treeItem;
-                                AuctionHouseUser auctionHouseUser =
-                                        currentHouseTreeItem.getAuctionHouseUser();
-                                int parseHouseID =
-                                        auctionHouseUser.getHouseID();
+                            // FIXME: changed how the houseID is gotten
+                            CustomAuctionHouseTreeItem currentHouseTreeItem =
+                                    (CustomAuctionHouseTreeItem) treeItem;
+                            AuctionHouseUser auctionHouseUser =
+                                    currentHouseTreeItem.getAuctionHouseUser();
+                            int parseHouseID =
+                                    auctionHouseUser.getHouseID();
 
-                                for (CustomAuctionHouseTreeItem houseTreeItem : houseTreeItemList) {
-                                    if (houseTreeItem.checkID(parseHouseID)) {
-                                        currentAuctionHouseTreeItem = houseTreeItem;
-                                        currentAuctionHouseUser =
-                                                currentAuctionHouseTreeItem.getAuctionHouseUser();
-                                        break;
-                                    }
+                            for (CustomAuctionHouseTreeItem houseTreeItem : houseTreeItemList) {
+                                if (houseTreeItem.checkID(parseHouseID)) {
+                                    currentAuctionHouseTreeItem = houseTreeItem;
+                                    currentAuctionHouseUser =
+                                            currentAuctionHouseTreeItem.getAuctionHouseUser();
+                                    break;
                                 }
+                            }
 
-                                //TODO: update label, get items
+                            //TODO: update label, get items
 //                        AuctionHouseUser auctionHouseUser =
 //                                currentAuctionHouseTreeItem.getAuctionHouseUser();
 
-                                String houseHostName = currentAuctionHouseUser.getHouseHostName();
+                            String houseHostName = currentAuctionHouseUser.getHouseHostName();
 
-                                initializeHouseConnection(houseHostName);
+                            initializeHouseConnection(houseHostName);
 
-                                //updateHouseItemList();
-                                askHouseItemList();
+                            //updateHouseItemList();
+                            askHouseItemList();
 
-                                guiStuff.updateCurrentAuctionHouseLabel(
-                                        currentAuctionHouseUser);
-                            });
-                        } else {
+                            guiStuff.updateCurrentAuctionHouseLabel(
+                                    currentAuctionHouseUser);
+                        });
+                    } else {
 //                        System.out.println();
 //                        System.out.println("Auction house connect context " +
 //                                "menu already initialized");
-                        }
-                    } else if (treeItem instanceof CustomItemTreeItem) {
-                        System.out.println("Item type: Tree Cell...");
+                    }
+                } else if (treeItem instanceof CustomItemTreeItem) {
+                    System.out.println("Item type: Tree Cell...");
 
-                        CustomItemTreeItem customItemTreeItem =
-                                (CustomItemTreeItem) treeItem;
+                    CustomItemTreeItem customItemTreeItem =
+                            (CustomItemTreeItem) treeItem;
 
-                        Item item = customItemTreeItem.getItem();
+                    Item item = customItemTreeItem.getItem();
 
-                        System.out.println("Current item selected: " + item);
+                    System.out.println("Current item selected: " + item);
 
-                        this.setOnMousePressed(event -> itemMousePress(event,
-                                item));
+                    this.setOnMousePressed(event -> itemMousePress(event,
+                            item));
 
-                        guiStuff.updateCurrentItemSelectedLabel(item);
+                    guiStuff.updateCurrentItemSelectedLabel(item);
 
 //                    if (treeItem.isLeaf()
 //                            && getTreeItem().getParent() != null){
@@ -1246,7 +1377,7 @@ public class UserGUIController {
 //                        System.out.println();
 //                        System.out.println("No update...");
 //                    }
-                    }
+                }
 
 //                if (treeItem instanceof CustomAuctionHouseTreeItem) {
 //                    System.out.println();
@@ -1255,83 +1386,111 @@ public class UserGUIController {
 //
 //                    setContextMenu(connectContextMenu);
 //                }
-                }
-            });
+            }
         }
     }
 
-    private class UserGUIActionService extends Service<Void> {
+    private class UserGUIActionTimer {
+        private Timer timer;
         private Socket socket;
         private BufferedReader reader;
         private PrintWriter writer;
         private final List<FullMessage> fullMessagesActionList;
-        private boolean run;
 
-        public UserGUIActionService(Socket socket, BufferedReader reader,
-                                    PrintWriter writer,
-                                    List<FullMessage> fullMessagesActionList) {
+        public UserGUIActionTimer(Socket socket, BufferedReader reader,
+                                  PrintWriter writer,
+                                  List<FullMessage> fullMessagesActionList) {
+            timer = new Timer();
+
             this.socket = socket;
             this.reader = reader;
             this.writer = writer;
             this.fullMessagesActionList = fullMessagesActionList;
-            this.run = true;
+
+            timer.scheduleAtFixedRate(new UserGUIActionTimerTask(),
+                    0, 250);
+        }
+
+        private class UserGUIActionTimerTask extends TimerTask {
+
+            @Override
+            public void run() {
+                Platform.runLater(() -> {
+                    synchronized (fullMessagesActionList) {
+                        while (!fullMessagesActionList.isEmpty()) {
+                            FullMessage currentFullMessage =
+                                    fullMessagesActionList.remove(0);
+                            MessageEnum messageEnum =
+                                    currentFullMessage.getMessageEnum();
+                            List<String> messageArgs =
+                                    currentFullMessage.getMessageArgs();
+
+                            // only two action listeners: bank or current house
+                            // connected to
+                            if (socket == bankSocket) {
+                                handleBankCommand(messageEnum,
+                                        currentFullMessage);
+                            } else {
+                                handleHouseCommand(messageEnum,
+                                        currentFullMessage);
+                            }
+                        }
+
+                        // TODO: check exit condition
+                        if (checkBankExit && checkHouseExit) {
+                            // get a handle to the stage
+                            // maybe this was why the stage wasn't closing...
+//                        Platform.runLater(() -> {
+//                            Stage stage = (Stage) userExitButton.getScene().getWindow();
+//                            stage.close();
+//                        });
+
+                            Stage stage = (Stage) userExitButton.getScene().getWindow();
+                            stage.close();
+
+                            // FIXME: might cause an error after the stage is closed...
+//                        CustomAlert customAlert =
+//                                new CustomAlert(Alert.AlertType.CONFIRMATION,
+//                                        "Exit " +
+//                                                "Program Successful",
+//                                        "The auction house program " +
+//                                                "was exited successfully.");
+//                        customAlert.show();
+
+                            showAlert(Alert.AlertType.CONFIRMATION,
+                                    "Exit " +
+                                            "Program Successful",
+                                    "The auction house program " +
+                                            "was exited successfully.");
+
+                            // TODO: stop the (action) timers...
+                            stopRunning();
+                            houseActionTimer.stopRunning();
+
+                            // TODO: ALSO THE READER TIMERS
+                            bankReaderTimer.stopRunning();
+                            houseReaderTimer.stopRunning();
+
+                            closeStreams();
+                        }
+                    }
+                });
+            }
+        }
+
+        private void closeStreams() {
+            try {
+                bankReader.close();
+                bankWriter.close();
+                houseReader.close();
+                houseWriter.close();
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
         }
 
         public void stopRunning() {
-            run = false;
-        }
-
-        @Override
-        protected Task<Void> createTask() {
-            synchronized (fullMessagesActionList) {
-                while (!fullMessagesActionList.isEmpty()) {
-                    FullMessage currentFullMessage =
-                            fullMessagesActionList.remove(0);
-                    MessageEnum messageEnum =
-                            currentFullMessage.getMessageEnum();
-                    List<String> messageArgs =
-                            currentFullMessage.getMessageArgs();
-
-                    // only two action listeners: bank or current house
-                    // connected to
-                    if (socket == bankSocket) {
-                        handleBankCommand(messageEnum,
-                                currentFullMessage);
-                    } else {
-                        handleHouseCommand(messageEnum,
-                                currentFullMessage);
-                    }
-                }
-
-                // TODO: check exit condition
-                if (checkBankExit && checkHouseExit) {
-                    // get a handle to the stage
-                    Stage stage = (Stage) userExitButton.getScene().getWindow();
-                    stage.close();
-
-                    // FIXME: might cause an error after the stage is closed...
-//                    CustomAlert customAlert =
-//                            new CustomAlert(Alert.AlertType.CONFIRMATION,
-//                                    "Exit " +
-//                                            "Program Successful",
-//                                    "The auction house program " +
-//                                            "was exited successfully.");
-//                    customAlert.show();
-
-                    showAlert(Alert.AlertType.CONFIRMATION,
-                            "Exit " +
-                                    "Program Successful",
-                            "The auction house program " +
-                                    "was exited successfully.");
-
-                    // TODO: stop the listeners...
-                    stopRunning();
-
-                    // TODO: ALSO THE READER LISTENER
-                }
-            }
-
-            return null;
+            timer.cancel();
         }
     }
 
@@ -1356,36 +1515,40 @@ public class UserGUIController {
         @Override
         public void run() {
             while (run) {
-                synchronized (fullMessagesActionList) {
-                    while (!fullMessagesActionList.isEmpty()) {
-                        FullMessage currentFullMessage =
-                                fullMessagesActionList.remove(0);
-                        MessageEnum messageEnum =
-                                currentFullMessage.getMessageEnum();
-                        List<String> messageArgs =
-                                currentFullMessage.getMessageArgs();
+                Platform.runLater(() -> {
+                    synchronized (fullMessagesActionList) {
+                        while (!fullMessagesActionList.isEmpty()) {
+                            FullMessage currentFullMessage =
+                                    fullMessagesActionList.remove(0);
+                            MessageEnum messageEnum =
+                                    currentFullMessage.getMessageEnum();
+                            List<String> messageArgs =
+                                    currentFullMessage.getMessageArgs();
 
-                        // only two action listeners: bank or current house
-                        // connected to
-                        if (socket == bankSocket) {
-                            handleBankCommand(messageEnum,
-                                    currentFullMessage);
-                        } else {
-                            handleHouseCommand(messageEnum,
-                                    currentFullMessage);
+                            // only two action listeners: bank or current house
+                            // connected to
+                            if (socket == bankSocket) {
+                                handleBankCommand(messageEnum,
+                                        currentFullMessage);
+                            } else {
+                                handleHouseCommand(messageEnum,
+                                        currentFullMessage);
+                            }
                         }
-                    }
 
-                    // TODO: check exit condition
-                    if (checkBankExit && checkHouseExit) {
-                        // get a handle to the stage
-                        // maybe this was why the stage wasn't closing...
-                        Platform.runLater(() -> {
+                        // TODO: check exit condition
+                        if (checkBankExit && checkHouseExit) {
+                            // get a handle to the stage
+                            // maybe this was why the stage wasn't closing...
+//                        Platform.runLater(() -> {
+//                            Stage stage = (Stage) userExitButton.getScene().getWindow();
+//                            stage.close();
+//                        });
+
                             Stage stage = (Stage) userExitButton.getScene().getWindow();
                             stage.close();
-                        });
 
-                        // FIXME: might cause an error after the stage is closed...
+                            // FIXME: might cause an error after the stage is closed...
 //                        CustomAlert customAlert =
 //                                new CustomAlert(Alert.AlertType.CONFIRMATION,
 //                                        "Exit " +
@@ -1394,25 +1557,39 @@ public class UserGUIController {
 //                                                "was exited successfully.");
 //                        customAlert.show();
 
-                        showAlert(Alert.AlertType.CONFIRMATION,
-                                "Exit " +
-                                        "Program Successful",
-                                "The auction house program " +
-                                        "was exited successfully.");
+                            showAlert(Alert.AlertType.CONFIRMATION,
+                                    "Exit " +
+                                            "Program Successful",
+                                    "The auction house program " +
+                                            "was exited successfully.");
 
-                        // TODO: stop the (action) listeners...
-                        stopRunning();
+                            // TODO: stop the (action) listeners...
+                            stopRunning();
 
-                        // TODO: ALSO THE READER LISTENER
-                        bankReaderListener.stopRunning();
-                        houseReaderListener.stopRunning();
+                            // TODO: ALSO THE READER LISTENER
+                            bankReaderListener.stopRunning();
+                            houseReaderListener.stopRunning();
+
+                            closeStreams();
+                        }
                     }
-                }
+                });
             }
         }
 
         public void stopRunning() {
             run = false;
+        }
+
+        private void closeStreams() {
+            try {
+                bankReader.close();
+                bankWriter.close();
+                houseReader.close();
+                houseWriter.close();
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
 
@@ -1651,6 +1828,14 @@ public class UserGUIController {
         houseActionListener.stopRunning();
         houseActionListener = null;
 
+        // TODO: close the house streams
+        try {
+            houseReader.close();
+            houseWriter.close();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+
         houseMessagesActionList.clear();
 
         // TODO: clear any other stuff
@@ -1660,7 +1845,7 @@ public class UserGUIController {
         checkHouseExit = true;
 
         // TODO: maybe refresh the house list afterwards?
-
+        askHouseItemList();
     }
 
     private void getAuctionHouseList(FullMessage houseListMessage) {
@@ -1694,12 +1879,18 @@ public class UserGUIController {
                                String contextStringAlert) {
 
 
-        Platform.runLater(() -> {
-            CustomAlert bankExitAlert = new CustomAlert(
-                    alertType,
-                    titleAlert,
-                    contextStringAlert);
-            bankExitAlert.show();
-        });
+//        Platform.runLater(() -> {
+//            CustomAlert bankExitAlert = new CustomAlert(
+//                    alertType,
+//                    titleAlert,
+//                    contextStringAlert);
+//            bankExitAlert.show();
+//        });
+
+        CustomAlert bankExitAlert = new CustomAlert(
+                alertType,
+                titleAlert,
+                contextStringAlert);
+        bankExitAlert.show();
     }
 }
