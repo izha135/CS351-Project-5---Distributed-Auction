@@ -39,19 +39,21 @@ public class UserGUIReaderTimer {
         public void run() {
             Platform.runLater(() -> {
                 try {
-                    if(reader.ready()) {
-                        String message = reader.readLine();
-                        // FIXME: Invoke functions based on input
-                        // FIXME: move to other listener...
+                    if (reader != null) {
+                        if(reader.ready()) {
+                            String message = reader.readLine();
+                            // FIXME: Invoke functions based on input
+                            // FIXME: move to other listener...
 
-                        System.out.println();
-                        System.out.println("Message received: " + message);
+                            System.out.println();
+                            System.out.println("Message received: " + message);
 
-                        FullMessage fullMessage =
-                                getFullMessageFromListener(message);
+                            FullMessage fullMessage =
+                                    getFullMessageFromListener(message);
 
-                        synchronized (fullMessagesActionList) {
-                            fullMessagesActionList.add(fullMessage);
+                            synchronized (fullMessagesActionList) {
+                                fullMessagesActionList.add(fullMessage);
+                            }
                         }
                     }
                 }

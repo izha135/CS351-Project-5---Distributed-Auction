@@ -111,6 +111,15 @@ public class Bid implements Serializable {
     }
 
     public static String getAlternateBidString(MessageEnum messageEnum,
+                                               int houseID, int itemID,
+                                               double bidAmount,
+                                               int lastBidderID) {
+        return messageEnum.name() + ": (House ID: " + houseID
+                + ") Item ID - " + itemID + " at bid" +
+                " $" + bidAmount + " from User ID: " + lastBidderID;
+    }
+
+    public static String getAlternateBidString(MessageEnum messageEnum,
                                                int houseID, String itemName,
                                                int itemID,
                                                double bidAmount) {
@@ -119,6 +128,7 @@ public class Bid implements Serializable {
                 + itemID + ") at bid" +
                 " $" + bidAmount;
     }
+
 
     public static String getAlternateBidString(MessageEnum messageEnum,
                                                int houseID,

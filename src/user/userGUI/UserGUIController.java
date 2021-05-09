@@ -1739,6 +1739,7 @@ public class UserGUIController {
         int itemID = Integer.parseInt(outBidArgs.get(1));
         int outBidderID = Integer.parseInt(outBidArgs.get(2));
         double newBidAmount = Double.parseDouble(outBidArgs.get(3));
+        int lastBidderID = Integer.parseInt(outBidArgs.get(4));
 
         synchronized (currentBidList) {
             currentBidList.remove(Bid.getBidFromItemID(currentBidList,
@@ -1753,15 +1754,18 @@ public class UserGUIController {
 //                " on the Item ID: " + itemID + " with a new bid amount of $" + newBidAmount);
 //        outBidAlert.show();
 
-        showAlert(Alert.AlertType.WARNING,
-                messageEnum.name(), "Alert from House ID: " + houseID +
-                        "\nSorry, you have been outbid by User ID: " + outBidderID +
-                        " on the Item ID: " + itemID + " with a new bid amount of $" + newBidAmount);
+        if (lastBidderID == userID) {
+            showAlert(Alert.AlertType.WARNING,
+                    messageEnum.name(), "Alert from House ID: " + houseID +
+                            "\nSorry, you have been outbid by User ID: " + outBidderID +
+                            " on the Item ID: " + itemID + " with a new bid " +
+                            "amount of $" + newBidAmount);
+        }
 
         // TODO: update bid history
         guiStuff.updateBidHistoryTextArea(Bid.getAlternateBidString(
                 messageEnum, houseID, itemID,
-                newBidAmount));
+                newBidAmount, lastBidderID));
     }
 
     private void getWinnerMessage(FullMessage currentFullMessage) {
@@ -1927,13 +1931,17 @@ public class UserGUIController {
 //        houseActionListener.stopRunning();
 //        houseActionListener = null;
 
-        // TODO: close the house streams
-        try {
-            houseReader.close();
-            houseWriter.close();
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
+        // TODO: close the house streams -- well, need some way to stop the
+        //  timers...change to null instead...
+//        try {
+//            houseReader.close();
+//            houseWriter.close();
+//        } catch (IOException e) {
+//            System.out.println(e.getMessage());
+//        }
+
+        houseReader = null;
+        houseWriter = null;
 
         houseMessagesActionList.clear();
 
