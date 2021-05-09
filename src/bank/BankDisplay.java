@@ -96,7 +96,7 @@ public class BankDisplay {
 
     public void removeUser(int userId) {
         Platform.runLater(() -> {
-            mainVBox2.getChildren().remove(userId);
+            mainVBox2.getChildren().remove(users.get(userId).getUserBox());
             users.remove(userId);
         });
     }
@@ -123,7 +123,7 @@ public class BankDisplay {
 
     public void removeHouse(int houseId) {
         Platform.runLater(() -> {
-            mainVBox1.getChildren().remove(houses.get(houseId));
+            mainVBox1.getChildren().remove(houses.get(houseId).getHouseBox());
             houses.remove(houseId);
         });
     }
@@ -167,7 +167,7 @@ public class BankDisplay {
         }
 
         public void changeRemaining(double remaining) {
-            balanceLabel.setText(Double.toString(Math.round(remaining*100)/100.0));
+            remainingLabel.setText(Double.toString(Math.round(remaining*100)/100.0));
         }
 
         public HBox getUserBox() {

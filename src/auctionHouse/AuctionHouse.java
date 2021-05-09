@@ -225,7 +225,7 @@ public class AuctionHouse {
                 }
                 else {
                     // Else, return a CAN_EXIT message
-                    userMessage = MessageEnum.CAN_EXIT + ";" + ahId;
+                    userMessage = MessageEnum.CAN_EXIT.toString(); //+ ";" + ahId;
                 }
                 userWriter.println(userMessage);
                 break;

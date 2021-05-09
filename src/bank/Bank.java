@@ -305,7 +305,7 @@ public class Bank{
                         getUser(winningUser).username + ";" + itemBid);
             }
         }
-        houseWriter.println(MessageEnum.REMOVE_ITEM + ";" + itemId);
+        //houseWriter.println(MessageEnum.REMOVE_ITEM + ";" + itemId);
     }
 
     /**
