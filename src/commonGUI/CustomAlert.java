@@ -10,6 +10,10 @@ public class CustomAlert extends Alert {
                        String titleAlert, String contextTextAlert) {
         super(alertType);
 
+        // forgot to add this...(that's why the alerts were "blank"...)
+        this.setTitle(titleAlert);
+        this.setContentText(contextTextAlert);
+
         this.titleAlert = titleAlert;
         this.contextTextAlert = contextTextAlert;
     }

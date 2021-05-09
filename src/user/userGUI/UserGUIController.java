@@ -3,6 +3,8 @@ package user.userGUI;
 import common.*;
 import commonGUI.*;
 import javafx.application.Platform;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -147,7 +149,6 @@ public class UserGUIController {
         pane.getChildren().add(houseItemTreeView);
 
         //updateAuctionHouseList();
-        askAuctionHouseList();
 
         guiStuff = new GuiStuff(userIDAccountLabel,
                 userAccountBalanceLabel,
@@ -176,7 +177,7 @@ public class UserGUIController {
         //}
     }
 
-    private Runnable initializeLabels() {
+    private void initializeLabels() {
         guiStuff.updateUserIDAccountLabel(userID);
         guiStuff.updateUserAccountBalanceLabel(
                 userBankAccount.getBalance());
@@ -184,7 +185,6 @@ public class UserGUIController {
         guiStuff.resetLabel(currentAuctionHouseLabel);
         guiStuff.resetLabel(currentItemSelectedLabel);
         guiStuff.updateUserBlockAmountLabel(0.00, true);
-        return null;
     }
 
     private void updateHouseListTreeView() {
@@ -234,11 +234,15 @@ public class UserGUIController {
 //        }
 
         if (currentItemSelected == null) {
-            Alert invalidItemSelectedAlert = new Alert(Alert.AlertType.ERROR);
-            invalidItemSelectedAlert.setTitle("Invalid Item selected");
-            invalidItemSelectedAlert.setContentText("Please select an item before making a bid");
+//            Alert invalidItemSelectedAlert = new Alert(Alert.AlertType.ERROR);
+//            invalidItemSelectedAlert.setTitle("Invalid Item selected");
+//            invalidItemSelectedAlert.setContentText("Please select an item before making a bid");
+//
+//            invalidItemSelectedAlert.show();
 
-            invalidItemSelectedAlert.show();
+            showAlert(Alert.AlertType.ERROR,
+                    "Invalid Item selected",
+                    "Please select an item before making a bid");
             return;
         }
 
@@ -252,12 +256,17 @@ public class UserGUIController {
         int houseID = currentAuctionHouseUser.getHouseID();
 
         if (Double.compare(userBankAccount.getBalance(), bidAmount) < 0) {
-            CustomAlert notEnoughFundsAlert =
-                    new CustomAlert(Alert.AlertType.ERROR,
-                            "Not Enough Funds",
-                            "Sorry, you do not have enough funds " +
-                                    "to place that bid. Please try again...");
-            notEnoughFundsAlert.show();
+//            CustomAlert notEnoughFundsAlert =
+//                    new CustomAlert(Alert.AlertType.ERROR,
+//                            "Not Enough Funds",
+//                            "Sorry, you do not have enough funds " +
+//                                    "to place that bid. Please try again...");
+//            notEnoughFundsAlert.show();
+
+            showAlert(Alert.AlertType.ERROR,
+                    "Not Enough Funds",
+                    "Sorry, you do not have enough funds " +
+                            "to place that bid. Please try again...");
 
             return;
         }
@@ -268,13 +277,19 @@ public class UserGUIController {
         if (!currentBidList.contains(currentBid)) {
             currentBidList.add(currentBid);
         } else {
-            CustomAlert bidInProgressAlert =
-                    new CustomAlert(Alert.AlertType.ERROR,
-                            "Bid in Progress",
-                            "Sorry, you cannot place multiple " +
-                                    "bids on the same item until your bid " +
-                                    "was processed...");
-            bidInProgressAlert.show();
+//            CustomAlert bidInProgressAlert =
+//                    new CustomAlert(Alert.AlertType.ERROR,
+//                            "Bid in Progress",
+//                            "Sorry, you cannot place multiple " +
+//                                    "bids on the same item until your bid " +
+//                                    "was processed...");
+//            bidInProgressAlert.show();
+
+            showAlert(Alert.AlertType.ERROR,
+                    "Bid in Progress",
+                    "Sorry, you cannot place multiple " +
+                            "bids on the same item until your bid " +
+                            "was processed...");
 
             return;
         }
@@ -456,16 +471,22 @@ public class UserGUIController {
 
         double bidAmount = currentBid.getBidAmount();
 
-        bidStatusAlert =
-                new Alert(
-                        Alert.AlertType.CONFIRMATION);
-        bidStatusAlert.setTitle(bidMessageEnum.name());
-        bidStatusAlert.setContentText("Your bid of $"
-                + bidAmount + " on item "
-                + currentItemSelected.getTreeItemTitle()
-                + " was accepted!");
+//        bidStatusAlert =
+//                new Alert(
+//                        Alert.AlertType.CONFIRMATION);
+//        bidStatusAlert.setTitle(bidMessageEnum.name());
+//        bidStatusAlert.setContentText("Your bid of $"
+//                + bidAmount + " on item "
+//                + currentItemSelected.getTreeItemTitle()
+//                + " was accepted!");
+//
+//        bidStatusAlert.show();
 
-        bidStatusAlert.show();
+        showAlert(Alert.AlertType.CONFIRMATION, bidMessageEnum.name()
+                , "Your bid of $"
+                        + bidAmount + " on item "
+                        + currentItemSelected.getTreeItemTitle()
+                        + " was accepted!");
 
         userBankAccount.removeFunds(bidAmount);
 
@@ -504,15 +525,21 @@ public class UserGUIController {
 
         double bidAmount = currentBid.getBidAmount();
 
-        bidStatusAlert =
-                new Alert(Alert.AlertType.WARNING);
-        bidStatusAlert.setTitle(bidMessageEnum.name());
-        bidStatusAlert.setContentText("Sorry, your bid of $"
+//        bidStatusAlert =
+//                new Alert(Alert.AlertType.WARNING);
+//        bidStatusAlert.setTitle(bidMessageEnum.name());
+//        bidStatusAlert.setContentText("Sorry, your bid of $"
+//                + bidAmount + " on item "
+//                + currentItemSelected.getTreeItemTitle()
+//                + " was rejected...Better luck next time!");
+//
+//        bidStatusAlert.show();
+
+        showAlert(Alert.AlertType.WARNING,
+                bidMessageEnum.name(), "Sorry, your bid of $"
                 + bidAmount + " on item "
                 + currentItemSelected.getTreeItemTitle()
                 + " was rejected...Better luck next time!");
-
-        bidStatusAlert.show();
 
 //                currentBid = new Bid(bidAmount, houseID, currentItemSelected,
 //                        bidMessageEnum);
@@ -678,12 +705,16 @@ public class UserGUIController {
                 + "\nwas setup successfully");
 
         // alert for items
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Items Notification");
-        alert.setContentText("Successfully initialized " + itemCount +
-                " items from house id: " + houseID);
+//        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+//        alert.setTitle("Items Notification");
+//        alert.setContentText("Successfully initialized " + itemCount +
+//                " items from house id: " + houseID);
+//        alert.show();
 
-        alert.show();
+        showAlert(Alert.AlertType.CONFIRMATION,
+                "Items Notification",
+                "Successfully initialized " + itemCount +
+                " items from house id: " + houseID);
     }
 
     private void updateHouseItemList() {
@@ -750,12 +781,17 @@ public class UserGUIController {
         }
 
         // alert for items
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Items Notification");
-        alert.setContentText("Successfully initialized " + itemCount +
-                " items from house id: " + houseID);
+//        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+//        alert.setTitle("Items Notification");
+//        alert.setContentText("Successfully initialized " + itemCount +
+//                " items from house id: " + houseID);
+//
+//        alert.show();
 
-        alert.show();
+        showAlert(Alert.AlertType.CONFIRMATION,
+                "Items Notification",
+                "Successfully initialized " + itemCount +
+                " items from house id: " + houseID);
     }
 
     private void itemMousePress(MouseEvent mouseEvent, Item item) {
@@ -882,12 +918,15 @@ public class UserGUIController {
                 userID);
 
         // FIXME: changed where the labels are initialized
-        Platform.runLater(initializeLabels());
+        Platform.runLater(this::initializeLabels);
         //initializeLabels();
 
         System.out.println("Finished...user ID: " + userID);
         System.out.println("Initialized bank account with initial balance: $"
                 + INITIAL_BALANCE);
+
+        // FIXME: moved from initialize()
+        askAuctionHouseList();
     }
 
     private FullMessage getFullMessageFromReader(BufferedReader currentReader) {
@@ -938,20 +977,31 @@ public class UserGUIController {
             stage.close();
 
             // FIXME: might cause an error after the stage is closed...
-            CustomAlert customAlert =
-                    new CustomAlert(Alert.AlertType.CONFIRMATION,
-                            "Exit " +
-                            "Program Successful",
-                            "The auction house program " +
-                            "was exited successfully.");
-            customAlert.show();
-        } else {
-            Alert exitAlert = new Alert(Alert.AlertType.ERROR);
-            exitAlert.setTitle("Exit Auction House Error");
-            exitAlert.setContentText("Sorry, you are unable to exit due to " +
-                    "various reasons (bids still in progress)...");
+//            CustomAlert customAlert =
+//                    new CustomAlert(Alert.AlertType.CONFIRMATION,
+//                            "Exit " +
+//                            "Program Successful",
+//                            "The auction house program " +
+//                            "was exited successfully.");
+//            customAlert.show();
 
-            exitAlert.show();
+            showAlert(Alert.AlertType.CONFIRMATION,
+                    "Exit " +
+                            "Program Successful",
+                    "The auction house program " +
+                            "was exited successfully.");
+        } else {
+//            Alert exitAlert = new Alert(Alert.AlertType.ERROR);
+//            exitAlert.setTitle("Exit Auction House Error");
+//            exitAlert.setContentText("Sorry, you are unable to exit due to " +
+//                    "various reasons (bids still in progress)...");
+//
+//            exitAlert.show();
+
+            showAlert(Alert.AlertType.ERROR,
+                    "Exit Auction House Error",
+                    "Sorry, you are unable to exit due to " +
+                    "various reasons (bids still in progress)...");
 
             event.consume();
         }
@@ -1099,19 +1149,25 @@ public class UserGUIController {
 //                                "menu already initialized");
                     }
                 } else if (treeItem instanceof CustomItemTreeItem) {
-                    System.out.println("Item type: Tree Cell...");
+                    if (treeItem.isLeaf()) {
+                        // Maybe this was why there was some inaccurate
+                        // updating...(EVERYTHING has to be in the runLater())
+                        Platform.runLater(() -> {
+                            System.out.println("Item type: Tree Cell...");
 
-                    CustomItemTreeItem customItemTreeItem =
-                            (CustomItemTreeItem) treeItem;
+                            CustomItemTreeItem customItemTreeItem =
+                                    (CustomItemTreeItem) treeItem;
 
-                    Item item = customItemTreeItem.getItem();
+                            Item item = customItemTreeItem.getItem();
 
-                    System.out.println("Current item selected: " + item);
+                            System.out.println("Current item selected: " + item);
 
-                    this.setOnMousePressed(event -> itemMousePress(event,
-                            item));
+                            this.setOnMousePressed(event -> itemMousePress(event,
+                                    item));
 
-                    guiStuff.updateCurrentItemSelectedLabel(item);
+                            guiStuff.updateCurrentItemSelectedLabel(item);
+                        });
+                    }
 
 //                    if (treeItem.isLeaf()
 //                            && getTreeItem().getParent() != null){
@@ -1130,6 +1186,81 @@ public class UserGUIController {
 //                    setContextMenu(connectContextMenu);
 //                }
             }
+        }
+    }
+
+    private class UserGUIActionService extends Service<Void> {
+        private Socket socket;
+        private BufferedReader reader;
+        private PrintWriter writer;
+        private final List<FullMessage> fullMessagesActionList;
+        private boolean run;
+
+        public UserGUIActionService(Socket socket, BufferedReader reader,
+                                    PrintWriter writer,
+                                    List<FullMessage> fullMessagesActionList) {
+            this.socket = socket;
+            this.reader = reader;
+            this.writer = writer;
+            this.fullMessagesActionList = fullMessagesActionList;
+            this.run = true;
+        }
+
+        public void stopRunning() {
+            run = false;
+        }
+
+        @Override
+        protected Task<Void> createTask() {
+            synchronized (fullMessagesActionList) {
+                while (!fullMessagesActionList.isEmpty()) {
+                    FullMessage currentFullMessage =
+                            fullMessagesActionList.remove(0);
+                    MessageEnum messageEnum =
+                            currentFullMessage.getMessageEnum();
+                    List<String> messageArgs =
+                            currentFullMessage.getMessageArgs();
+
+                    // only two action listeners: bank or current house
+                    // connected to
+                    if (socket == bankSocket) {
+                        handleBankCommand(messageEnum,
+                                currentFullMessage);
+                    } else {
+                        handleHouseCommand(messageEnum,
+                                currentFullMessage);
+                    }
+                }
+
+                // TODO: check exit condition
+                if (checkBankExit && checkHouseExit) {
+                    // get a handle to the stage
+                    Stage stage = (Stage) userExitButton.getScene().getWindow();
+                    stage.close();
+
+                    // FIXME: might cause an error after the stage is closed...
+//                    CustomAlert customAlert =
+//                            new CustomAlert(Alert.AlertType.CONFIRMATION,
+//                                    "Exit " +
+//                                            "Program Successful",
+//                                    "The auction house program " +
+//                                            "was exited successfully.");
+//                    customAlert.show();
+
+                    showAlert(Alert.AlertType.CONFIRMATION,
+                            "Exit " +
+                                    "Program Successful",
+                            "The auction house program " +
+                                    "was exited successfully.");
+
+                    // TODO: stop the listeners...
+                    stopRunning();
+
+                    // TODO: ALSO THE READER LISTENER
+                }
+            }
+
+            return null;
         }
     }
 
@@ -1164,7 +1295,7 @@ public class UserGUIController {
                                 currentFullMessage.getMessageArgs();
 
                         // only two action listeners: bank or current house
-                        // connected
+                        // connected to
                         if (socket == bankSocket) {
                             handleBankCommand(messageEnum,
                                     currentFullMessage);
@@ -1177,22 +1308,33 @@ public class UserGUIController {
                     // TODO: check exit condition
                     if (checkBankExit && checkHouseExit) {
                         // get a handle to the stage
-                        Stage stage = (Stage) userExitButton.getScene().getWindow();
-                        stage.close();
+                        // maybe this was why the stage wasn't closing...
+                        Platform.runLater(() -> {
+                            Stage stage = (Stage) userExitButton.getScene().getWindow();
+                            stage.close();
+                        });
 
                         // FIXME: might cause an error after the stage is closed...
-                        CustomAlert customAlert =
-                                new CustomAlert(Alert.AlertType.CONFIRMATION,
-                                        "Exit " +
-                                                "Program Successful",
-                                        "The auction house program " +
-                                                "was exited successfully.");
-                        customAlert.show();
+//                        CustomAlert customAlert =
+//                                new CustomAlert(Alert.AlertType.CONFIRMATION,
+//                                        "Exit " +
+//                                                "Program Successful",
+//                                        "The auction house program " +
+//                                                "was exited successfully.");
+//                        customAlert.show();
 
-                        // TODO: stop the listeners...
+                        showAlert(Alert.AlertType.CONFIRMATION,
+                                "Exit " +
+                                        "Program Successful",
+                                "The auction house program " +
+                                        "was exited successfully.");
+
+                        // TODO: stop the (action) listeners...
                         stopRunning();
 
                         // TODO: ALSO THE READER LISTENER
+                        bankReaderListener.stopRunning();
+                        houseReaderListener.stopRunning();
                     }
                 }
             }
@@ -1268,11 +1410,16 @@ public class UserGUIController {
 
         //Alert outBidAlert = new Alert(Alert.AlertType.WARNING);
         MessageEnum messageEnum = currentFullMessage.getMessageEnum();
-        CustomAlert outBidAlert = new CustomAlert(Alert.AlertType.WARNING,
+//        CustomAlert outBidAlert = new CustomAlert(Alert.AlertType.WARNING,
+//                messageEnum.name(), "Alert from House ID: " + houseID +
+//                "\nSorry, you have been outbid by User ID: " + outBidderID +
+//                " on the Item ID: " + itemID + " with a new bid amount of $" + newBidAmount);
+//        outBidAlert.show();
+
+        showAlert(Alert.AlertType.WARNING,
                 messageEnum.name(), "Alert from House ID: " + houseID +
-                "\nSorry, you have been outbid by User ID: " + outBidderID +
-                " on the Item ID: " + itemID + " with a new bid amount of $" + newBidAmount);
-        outBidAlert.show();
+                        "\nSorry, you have been outbid by User ID: " + outBidderID +
+                        " on the Item ID: " + itemID + " with a new bid amount of $" + newBidAmount);
 
         // TODO: update bid history
         guiStuff.updateBidHistoryTextArea(Bid.getAlternateBidString(
@@ -1290,11 +1437,16 @@ public class UserGUIController {
 
         //Alert outBidAlert = new Alert(Alert.AlertType.WARNING);
         MessageEnum messageEnum = currentFullMessage.getMessageEnum();
-        CustomAlert outBidAlert = new CustomAlert(Alert.AlertType.CONFIRMATION,
+//        CustomAlert outBidAlert = new CustomAlert(Alert.AlertType.CONFIRMATION,
+//                messageEnum.name(), "Alert from House ID: " + houseID +
+//                "\nCongratulations, you have won the following item!\n" + itemName +
+//                "with Item ID: " + itemID + " with a final bid amount of $" + newBidAmount);
+//        outBidAlert.show();
+
+        showAlert(Alert.AlertType.CONFIRMATION,
                 messageEnum.name(), "Alert from House ID: " + houseID +
-                "\nCongratulations, you have won the following item!\n" + itemName +
-                "with Item ID: " + itemID + " with a final bid amount of $" + newBidAmount);
-        outBidAlert.show();
+                        "\nCongratulations, you have won the following item!\n" + itemName +
+                        "with Item ID: " + itemID + " with a final bid amount of $" + newBidAmount);
 
         // TODO: update bid history
         guiStuff.updateBidHistoryTextArea(Bid.getAlternateBidString(
@@ -1313,13 +1465,20 @@ public class UserGUIController {
 
         //Alert outBidAlert = new Alert(Alert.AlertType.WARNING);
         MessageEnum messageEnum = currentFullMessage.getMessageEnum();
-        CustomAlert outBidAlert = new CustomAlert(Alert.AlertType.CONFIRMATION,
+//        CustomAlert outBidAlert = new CustomAlert(Alert.AlertType.CONFIRMATION,
+//                messageEnum.name(), "Alert from House ID: " + houseID +
+//                "\nUnfortunately, the following item is no longer in " +
+//                "auction with the winner " + winnerUsername + "...\n" + itemName +
+//                "with Item ID: " + itemID + " with a final bid amount of $"
+//                + newBidAmount);
+//        outBidAlert.show();
+
+        showAlert(Alert.AlertType.CONFIRMATION,
                 messageEnum.name(), "Alert from House ID: " + houseID +
-                "\nUnfortunately, the following item is no longer in " +
-                "auction with the winner " + winnerUsername + "...\n" + itemName +
-                "with Item ID: " + itemID + " with a final bid amount of $"
-                + newBidAmount);
-        outBidAlert.show();
+                        "\nUnfortunately, the following item is no longer in " +
+                        "auction with the winner " + winnerUsername + "...\n" + itemName +
+                        "with Item ID: " + itemID + " with a final bid amount of $"
+                        + newBidAmount);
 
         // TODO: update bid history
 
@@ -1357,14 +1516,14 @@ public class UserGUIController {
     }
 
     private void getBankCanExitMessage(FullMessage currentFullMessage) {
-//        MessageEnum messageEnum = currentFullMessage.getMessageEnum();
+        MessageEnum messageEnum = currentFullMessage.getMessageEnum();
+
 //        CustomAlert bankExitAlert = new CustomAlert(
 //                Alert.AlertType.CONFIRMATION,
 //                messageEnum.name() + " Bank",
 //                "You can now exit the bank.");
 //        bankExitAlert.showAlert();
 
-        MessageEnum messageEnum = currentFullMessage.getMessageEnum();
         showAlert(
                 Alert.AlertType.CONFIRMATION,
                 messageEnum.name() + " Bank",
@@ -1404,14 +1563,12 @@ public class UserGUIController {
         // TODO: update labels...
         currentAuctionHouseUser = null;
 
-        Platform.runLater(
-        guiStuff.resetLabel(currentAuctionHouseLabel));
+        guiStuff.resetLabel(currentAuctionHouseLabel);
         //guiStuff.resetLabel(currentAuctionHouseLabel)
 
         // TODO: current item selected and item list...
         currentItemSelected = null;
-        Platform.runLater(
-                guiStuff.resetLabel(currentItemSelectedLabel));
+        guiStuff.resetLabel(currentItemSelectedLabel);
         //guiStuff.resetLabel(currentItemSelectedLabel);
 
         // TODO: clear the children (items) of ALL HOUSES
@@ -1464,13 +1621,16 @@ public class UserGUIController {
         System.out.println("Auction House List setup successful");
     }
 
-    private Runnable showAlert(Alert.AlertType alertType, String titleAlert,
+    private void showAlert(Alert.AlertType alertType, String titleAlert,
                                String contextStringAlert) {
-        CustomAlert bankExitAlert = new CustomAlert(
-                alertType,
-                titleAlert,
-                contextStringAlert);
-        bankExitAlert.show();
-        return null;
+
+
+        Platform.runLater(() -> {
+            CustomAlert bankExitAlert = new CustomAlert(
+                    alertType,
+                    titleAlert,
+                    contextStringAlert);
+            bankExitAlert.show();
+        });
     }
 }

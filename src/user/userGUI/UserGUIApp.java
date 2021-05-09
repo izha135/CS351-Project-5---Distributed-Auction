@@ -69,9 +69,9 @@ public class UserGUIApp extends Application {
         bankPort = Integer.parseInt(args[0]);
         housePort = Integer.parseInt(args[1]);
         username = args[2];
-        //launch(args);
-        UserGUIApp userGUIApp = new UserGUIApp();
-        userGUIApp.createDisplay();
+        launch(args);
+//        UserGUIApp userGUIApp = new UserGUIApp();
+//        userGUIApp.createDisplay();
 
 //        SwingUtilities.invokeLater(new Runnable() {
 //            @Override
