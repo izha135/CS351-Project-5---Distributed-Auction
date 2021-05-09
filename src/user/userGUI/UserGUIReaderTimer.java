@@ -68,5 +68,6 @@ public class UserGUIReaderTimer {
 
     public void stopRunning() {
         timer.cancel();
+        timer.purge();
     }
 }

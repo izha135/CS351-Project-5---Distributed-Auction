@@ -69,7 +69,8 @@ public class Bid implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Bid bid = (Bid) o;
-        return Objects.equals(item, bid.item);
+        //return Objects.equals(item, bid.item);
+        return item.equals(bid.item);
     }
 
     @Override
@@ -89,7 +90,14 @@ public class Bid implements Serializable {
 
     @Override
     public String toString() {
-        return messageEnum.name() + ": (House ID: " + houseID + ") "
+        String messageEnumName;
+        if (messageEnum == null) {
+            messageEnumName = "[Empty]";
+        } else {
+            messageEnumName = messageEnum.name();
+        }
+
+        return messageEnumName + ": (House ID: " + houseID + ") "
                 + item.getTreeItemTitle() + " at bid" +
                 " $" + bidAmount;
     }

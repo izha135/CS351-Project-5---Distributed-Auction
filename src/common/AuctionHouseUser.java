@@ -5,11 +5,13 @@ import java.util.List;
 public class AuctionHouseUser {
     private int houseID;
     private String houseHostName;
+    private int housePort;
     private List<Item> itemList;
 
-    public AuctionHouseUser(int houseID, String houseHostName) {
+    public AuctionHouseUser(int houseID, String houseHostName, int housePort) {
         this.houseID = houseID;
         this.houseHostName = houseHostName;
+        this.housePort = housePort;
     }
 
     public int getHouseID() {
@@ -20,6 +22,10 @@ public class AuctionHouseUser {
         return houseHostName;
     }
 
+    public int getHousePort() {
+        return housePort;
+    }
+
     public List<Item> getItemList() {
         return itemList;
     }
@@ -27,13 +33,12 @@ public class AuctionHouseUser {
     @Override
     public String toString() {
         return "House ID: " + houseID + ", house host name: "
-                + houseHostName;
+                + houseHostName + ", port: " + housePort + "\n";
     }
 
     public String getFullString() {
         String currentString =
-                "House ID: " + houseID + ", house host name: "
-                        + houseHostName + "\n";
+                this.toString();
 
         for (Item item : itemList) {
             currentString += item;

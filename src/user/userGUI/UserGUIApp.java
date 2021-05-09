@@ -66,9 +66,14 @@ public class UserGUIApp extends Application {
     }
 
     public static void main(String[] args) {
+//        bankPort = Integer.parseInt(args[0]);
+//        housePort = Integer.parseInt(args[1]);
+//        username = args[2];
+
+        // FIXME: move ports to readers...
         bankPort = Integer.parseInt(args[0]);
-        housePort = Integer.parseInt(args[1]);
-        username = args[2];
+        username = args[1];
+
         launch(args);
 //        UserGUIApp userGUIApp = new UserGUIApp();
 //        userGUIApp.createDisplay();

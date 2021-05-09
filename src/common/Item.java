@@ -1,6 +1,7 @@
 package common;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class Item implements Serializable {
     private String itemName;
@@ -55,6 +56,19 @@ public class Item implements Serializable {
 
     public void setItemDesc(String itemDesc) {
         this.itemDesc = itemDesc;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Item item = (Item) o;
+        return itemId == item.itemId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(itemId);
     }
 
     @Override
