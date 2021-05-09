@@ -64,6 +64,9 @@ public class UserGUIController {
     @FXML
     Button exitHouseButton;
 
+    @FXML
+    Button exitBankButton;
+
     // TODO: add refresh buttons
     @FXML
     Button refreshHouseListButton;
@@ -161,10 +164,15 @@ public class UserGUIController {
 
         bidButton.setOnAction(event -> bidButtonOnAction());
 
+        // TODO: implement EXIT buttons
         // don't know what the difference is with lambda and method reference...
         userExitButton.setOnAction(this::exitRequestCheck);
 
         exitHouseButton.setOnAction(this::exitHouseButtonOnAction);
+
+        // same as general exit button, but button more explicit to disconnect
+        // with the bank specifically
+        exitBankButton.setOnAction(this::exitRequestCheck);
 
         // TODO: implement REFRESH buttons
         refreshHouseListButton.setOnAction(event -> askAuctionHouseList());
@@ -655,8 +663,19 @@ public class UserGUIController {
                 new ArrayList<>()));
     }
 
+    private void clearItemsFromAllHouseTreeItem() {
+        Platform.runLater(() -> {
+            for (CustomAuctionHouseTreeItem houseTreeItem : houseTreeItemList) {
+                houseTreeItem.getChildren().clear();
+            }
+        });
+    }
+
     private void getHouseItemList(FullMessage houseItemListFullMessage) {
         houseItemList.clear();
+
+        // clear the items in the tree view of the current auction house
+        clearItemsFromAllHouseTreeItem();
 
         List<String> houseItemListArgsList =
                 houseItemListFullMessage.getMessageArgs();
@@ -956,27 +975,30 @@ public class UserGUIController {
         exitHouseArgs.add(
                 Integer.toString(userID));
 
-        bankWriter.println(
-                MessageEnum.createMessageString(EXIT,
-                        exitBankArgs));
-        houseWriter.println(MessageEnum.createMessageString(EXIT,
-                exitHouseArgs));
+        if (bankWriter == null) {
+            showAlert(Alert.AlertType.ERROR, "Hit and Dash...",
+                    "Sorry, " +
+                    "please wait until the connection with the bank is " +
+                    "successfully connected before leaving...");
+            return;
+        }
 
-        FullMessage exitBankMessage = getFullMessageFromReader(
-                bankReader);
-        FullMessage exitHouseMessage = getFullMessageFromReader(
-                houseReader);
+        if (houseWriter == null) {
+            bankWriter.println(
+                    MessageEnum.createMessageString(EXIT,
+                            exitBankArgs));
 
-        MessageEnum exitBankMessageEnum = exitBankMessage.getMessageEnum();
-        MessageEnum exitHouseMessageEnum = exitHouseMessage.getMessageEnum();
+            FullMessage exitBankMessage = getFullMessageFromReader(
+                    bankReader);
 
-        if (exitBankMessageEnum == CAN_EXIT
-                && exitHouseMessageEnum == CAN_EXIT) {
-            // get a handle to the stage
-            Stage stage = (Stage) userExitButton.getScene().getWindow();
-            stage.close();
+            MessageEnum exitBankMessageEnum = exitBankMessage.getMessageEnum();
 
-            // FIXME: might cause an error after the stage is closed...
+            if (exitBankMessageEnum == CAN_EXIT) {
+                // get a handle to the stage
+                Stage stage = (Stage) userExitButton.getScene().getWindow();
+                stage.close();
+
+                // FIXME: might cause an error after the stage is closed...
 //            CustomAlert customAlert =
 //                    new CustomAlert(Alert.AlertType.CONFIRMATION,
 //                            "Exit " +
@@ -985,12 +1007,12 @@ public class UserGUIController {
 //                            "was exited successfully.");
 //            customAlert.show();
 
-            showAlert(Alert.AlertType.CONFIRMATION,
-                    "Exit " +
-                            "Program Successful",
-                    "The auction house program " +
-                            "was exited successfully.");
-        } else {
+                showAlert(Alert.AlertType.CONFIRMATION,
+                        "Exit " +
+                                "Program Successful",
+                        "The auction house program " +
+                                "was exited successfully.");
+            } else {
 //            Alert exitAlert = new Alert(Alert.AlertType.ERROR);
 //            exitAlert.setTitle("Exit Auction House Error");
 //            exitAlert.setContentText("Sorry, you are unable to exit due to " +
@@ -998,12 +1020,63 @@ public class UserGUIController {
 //
 //            exitAlert.show();
 
-            showAlert(Alert.AlertType.ERROR,
-                    "Exit Auction House Error",
-                    "Sorry, you are unable to exit due to " +
-                    "various reasons (bids still in progress)...");
+                showAlert(Alert.AlertType.ERROR,
+                        "Exit Auction House Error",
+                        "Sorry, you are unable to exit due to " +
+                                "various reasons (bids still in progress)...");
 
-            event.consume();
+                event.consume();
+            }
+        } else {
+            bankWriter.println(
+                    MessageEnum.createMessageString(EXIT,
+                            exitBankArgs));
+            houseWriter.println(MessageEnum.createMessageString(EXIT,
+                    exitHouseArgs));
+
+            FullMessage exitBankMessage = getFullMessageFromReader(
+                    bankReader);
+            FullMessage exitHouseMessage = getFullMessageFromReader(
+                    houseReader);
+
+            MessageEnum exitBankMessageEnum = exitBankMessage.getMessageEnum();
+            MessageEnum exitHouseMessageEnum = exitHouseMessage.getMessageEnum();
+
+            if (exitBankMessageEnum == CAN_EXIT
+                    && exitHouseMessageEnum == CAN_EXIT) {
+                // get a handle to the stage
+                Stage stage = (Stage) userExitButton.getScene().getWindow();
+                stage.close();
+
+                // FIXME: might cause an error after the stage is closed...
+//            CustomAlert customAlert =
+//                    new CustomAlert(Alert.AlertType.CONFIRMATION,
+//                            "Exit " +
+//                            "Program Successful",
+//                            "The auction house program " +
+//                            "was exited successfully.");
+//            customAlert.show();
+
+                showAlert(Alert.AlertType.CONFIRMATION,
+                        "Exit " +
+                                "Program Successful",
+                        "The auction house program " +
+                                "was exited successfully.");
+            } else {
+//            Alert exitAlert = new Alert(Alert.AlertType.ERROR);
+//            exitAlert.setTitle("Exit Auction House Error");
+//            exitAlert.setContentText("Sorry, you are unable to exit due to " +
+//                    "various reasons (bids still in progress)...");
+//
+//            exitAlert.show();
+
+                showAlert(Alert.AlertType.ERROR,
+                        "Exit Auction House Error",
+                        "Sorry, you are unable to exit due to " +
+                                "various reasons (bids still in progress)...");
+
+                event.consume();
+            }
         }
     }
 
@@ -1078,96 +1151,93 @@ public class UserGUIController {
 
         @Override
         public void updateItem(String itemString, boolean empty) {
-            super.updateItem(itemString, empty) ;
+            // Maybe this was why there was some inaccurate
+            // updating...(EVERYTHING has to be in the runLater())
+            Platform.runLater(() -> {
+                super.updateItem(itemString, empty) ;
 
-            if (empty) {
-                setText(null);
-            } else {
-                setText(itemString);
+                if (empty) {
+                    setText(null);
+                } else {
+                    setText(itemString);
 
-                TreeItem<String> treeItem = getTreeItem();
+                    TreeItem<String> treeItem = getTreeItem();
 
 //                System.out.println();
 //                System.out.println("Updating tree item...");
 //                System.out.println("Tree item " + treeItem);
 
-                // maybe this will work...
-                // FIXME: add if(connectContextMenu.getItems().isEmpty())
-                if (treeItem instanceof CustomAuctionHouseTreeItem) {
-                    if (connectContextMenu.getItems().isEmpty()) {
-                        //System.out.println("Auction House: Tree Cell...");
+                    // maybe this will work...
+                    // FIXME: add if(connectContextMenu.getItems().isEmpty())
+                    if (treeItem instanceof CustomAuctionHouseTreeItem) {
+                        if (connectContextMenu.getItems().isEmpty()) {
+                            //System.out.println("Auction House: Tree Cell...");
 
-                        MenuItem connectMenuItem = new MenuItem("Connect to this Auction " +
-                                "House");
-                        connectContextMenu.getItems().add(connectMenuItem);
+                            MenuItem connectMenuItem = new MenuItem("Connect to this Auction " +
+                                    "House");
+                            connectContextMenu.getItems().add(connectMenuItem);
 
 //                        System.out.println();
 //                        System.out.println("Setting the context menu in the " +
 //                                "update");
 
-                        setContextMenu(connectContextMenu);
+                            setContextMenu(connectContextMenu);
 
-                        connectMenuItem.setOnAction(event -> {
-                            // send request to connect to the chosen auction house
+                            connectMenuItem.setOnAction(event -> {
+                                // send request to connect to the chosen auction house
 //                        String[] houseTreeItemArgs = treeItem.getValue().split(" ");
 //                        String houseID = houseTreeItemArgs[1];
 
-                            // FIXME: changed how the houseID is gotten
-                            CustomAuctionHouseTreeItem currentHouseTreeItem =
-                                    (CustomAuctionHouseTreeItem) treeItem;
-                            AuctionHouseUser auctionHouseUser =
-                                    currentHouseTreeItem.getAuctionHouseUser();
-                            int parseHouseID =
-                                    auctionHouseUser.getHouseID();
+                                // FIXME: changed how the houseID is gotten
+                                CustomAuctionHouseTreeItem currentHouseTreeItem =
+                                        (CustomAuctionHouseTreeItem) treeItem;
+                                AuctionHouseUser auctionHouseUser =
+                                        currentHouseTreeItem.getAuctionHouseUser();
+                                int parseHouseID =
+                                        auctionHouseUser.getHouseID();
 
-                            for (CustomAuctionHouseTreeItem houseTreeItem : houseTreeItemList) {
-                                if (houseTreeItem.checkID(parseHouseID)) {
-                                    currentAuctionHouseTreeItem = houseTreeItem;
-                                    currentAuctionHouseUser =
-                                            currentAuctionHouseTreeItem.getAuctionHouseUser();
-                                    break;
+                                for (CustomAuctionHouseTreeItem houseTreeItem : houseTreeItemList) {
+                                    if (houseTreeItem.checkID(parseHouseID)) {
+                                        currentAuctionHouseTreeItem = houseTreeItem;
+                                        currentAuctionHouseUser =
+                                                currentAuctionHouseTreeItem.getAuctionHouseUser();
+                                        break;
+                                    }
                                 }
-                            }
 
-                            //TODO: update label, get items
+                                //TODO: update label, get items
 //                        AuctionHouseUser auctionHouseUser =
 //                                currentAuctionHouseTreeItem.getAuctionHouseUser();
 
-                            String houseHostName = currentAuctionHouseUser.getHouseHostName();
+                                String houseHostName = currentAuctionHouseUser.getHouseHostName();
 
-                            initializeHouseConnection(houseHostName);
+                                initializeHouseConnection(houseHostName);
 
-                            //updateHouseItemList();
-                            askHouseItemList();
+                                //updateHouseItemList();
+                                askHouseItemList();
 
-                            guiStuff.updateCurrentAuctionHouseLabel(
-                                    currentAuctionHouseUser);
-                        });
-                    } else {
+                                guiStuff.updateCurrentAuctionHouseLabel(
+                                        currentAuctionHouseUser);
+                            });
+                        } else {
 //                        System.out.println();
 //                        System.out.println("Auction house connect context " +
 //                                "menu already initialized");
-                    }
-                } else if (treeItem instanceof CustomItemTreeItem) {
-                    if (treeItem.isLeaf()) {
-                        // Maybe this was why there was some inaccurate
-                        // updating...(EVERYTHING has to be in the runLater())
-                        Platform.runLater(() -> {
-                            System.out.println("Item type: Tree Cell...");
+                        }
+                    } else if (treeItem instanceof CustomItemTreeItem) {
+                        System.out.println("Item type: Tree Cell...");
 
-                            CustomItemTreeItem customItemTreeItem =
-                                    (CustomItemTreeItem) treeItem;
+                        CustomItemTreeItem customItemTreeItem =
+                                (CustomItemTreeItem) treeItem;
 
-                            Item item = customItemTreeItem.getItem();
+                        Item item = customItemTreeItem.getItem();
 
-                            System.out.println("Current item selected: " + item);
+                        System.out.println("Current item selected: " + item);
 
-                            this.setOnMousePressed(event -> itemMousePress(event,
-                                    item));
+                        this.setOnMousePressed(event -> itemMousePress(event,
+                                item));
 
-                            guiStuff.updateCurrentItemSelectedLabel(item);
-                        });
-                    }
+                        guiStuff.updateCurrentItemSelectedLabel(item);
 
 //                    if (treeItem.isLeaf()
 //                            && getTreeItem().getParent() != null){
@@ -1176,7 +1246,7 @@ public class UserGUIController {
 //                        System.out.println();
 //                        System.out.println("No update...");
 //                    }
-                }
+                    }
 
 //                if (treeItem instanceof CustomAuctionHouseTreeItem) {
 //                    System.out.println();
@@ -1185,7 +1255,8 @@ public class UserGUIController {
 //
 //                    setContextMenu(connectContextMenu);
 //                }
-            }
+                }
+            });
         }
     }
 
@@ -1572,9 +1643,7 @@ public class UserGUIController {
         //guiStuff.resetLabel(currentItemSelectedLabel);
 
         // TODO: clear the children (items) of ALL HOUSES
-        for (TreeItem<String> houseChild : houseTreeItemList) {
-            houseChild.getChildren().clear();
-        }
+        clearItemsFromAllHouseTreeItem();
 
         // TODO: clear listeners and action list
         houseReaderListener.stopRunning();

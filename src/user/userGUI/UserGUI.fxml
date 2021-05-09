@@ -50,7 +50,7 @@
             <HBox spacing="10.0">
                <children>
                   <Button fx:id="exitHouseButton" mnemonicParsing="false" text="Exit House" />
-                  <Button mnemonicParsing="false" text="Test" />
+                  <Button fx:id="exitBankButton" mnemonicParsing="false" text="Exit Bank" />
                </children>
             </HBox>
             <Label fx:id="bidHistoryLabel" text="Bid History:" wrapText="true" />
