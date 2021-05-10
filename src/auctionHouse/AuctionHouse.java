@@ -1,5 +1,6 @@
 package auctionHouse;
 
+import bank.Bank;
 import common.Item;
 import common.MessageEnum;
 
@@ -8,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -19,7 +21,8 @@ public class AuctionHouse {
     private static int ahId; // Requested and received from Auction Central
     private static HashMap<Integer, Item> items; //Item ID as key for the item.
     private static HashMap<Integer, TimerThread> itemTimers;
-    private static List<SocketInfo> userList;
+    private static HashMap<Integer, SocketInfo> users;
+    private static HashMap<Integer, Integer> highestBidUser;
 
     private int itemCounter = 0;
     private static boolean run;
@@ -34,8 +37,9 @@ public class AuctionHouse {
     public static void main(String[] args) {
         items = new HashMap<>();
         itemTimers = new HashMap<>();
-        userList = new LinkedList<>();
-        String hostName = args[0];
+        users = new HashMap<>();
+        highestBidUser = new HashMap<>();
+        String hostName = "localhost"; //args[0];
         port = 3030;
 
         String message;
@@ -47,7 +51,7 @@ public class AuctionHouse {
         catch (Exception e) {
             e.printStackTrace();
         }
-        AuctionHouseListener listener = new AuctionHouseListener(server, userList);
+        AuctionHouseListener listener = new AuctionHouseListener(server, users);
         listener.start();
 
         try (Socket socket = new Socket(hostName, port);
@@ -69,11 +73,11 @@ public class AuctionHouse {
             // Now being listening and parsing messags
             run = true;
             while(run) {
-                for(int i = 0; i < userList.size(); i++) {
-                    if(userList.get(i).reader.ready()) {
-                        SocketInfo user = userList.get(i);
+                for(int i = 0; i < users.size(); i++) {
+                    if(users.get(i).reader.ready()) {
+                        SocketInfo user = users.get(i);
                         message = user.reader.readLine();
-                        parseUserMessage(message, user.writer);
+                        parseUserMessage(message, user.writer, writer);
                     }
                 }
                 if(reader.ready()) {
@@ -88,7 +92,7 @@ public class AuctionHouse {
     }
 
     // THE writer IS THE WRITER FOR THE USER. USE IT TO SEND MESSAGES
-    public static void parseUserMessage(String message, PrintWriter writer) {
+    public static void parseUserMessage(String message, PrintWriter writer, PrintWriter bankWriter) {
         String[] split = message.split(";");
         MessageEnum command = MessageEnum.parseCommand(split[0]);
 
@@ -101,16 +105,35 @@ public class AuctionHouse {
                 // Check if the item is in the AuctionHouse
                 // If not, send a REJECT message (formatted) to the user
                 // Else, send a VALID_BID message to the bank
+                if(items.containsKey(itemId)){
+                  int prevHighBidder = highestBidUser.get(itemId);
+                  bankWriter.println(MessageEnum.VALID_BID + ";" + houseId + ";" + userId + ";" + bidAmount + ";" + itemId + ";" + prevHighBidder + ";" + ahId + ";3");
+                } else{
+                  writer.println(MessageEnum.REJECT + ";" + userId + ";" + itemId + ";" + ahId + ";3");
+                }
                 break;
             case GET_ITEM:
                 itemId = Integer.parseInt(split[1]);
+                Item it = items.get(itemId);
+                writer.println(MessageEnum.ITEM + ";" + it.getItemBid() + ";" + itemId + ";" + it.getHouseId() + ";3");
                 // Return an ITEM message to the requesting user
                 break;
             case GET_ITEMS:
+                ArrayList<Item> itemsAsList = new ArrayList<Item>(items.values());
+                writer.println(MessageEnum.ITEMS + ";" +  getItemsAsString());
                 // Return an ITEMS message to the requesting user
                 break;
             case EXIT:
                 userId = Integer.parseInt(split[1]);
+                // Get prevHighBidder for all the items
+                ArrayList<Integer> allUsers = new ArrayList<Integer>(highestBidUser.values());
+                for(Integer h : allUsers){
+                    if(userId == h){
+                        writer.println(MessageEnum.ERROR + ";" + "Cannot exit;");
+                        break;
+                    }
+                }
+                writer.println(MessageEnum.CAN_EXIT);
                 // Check if the user is the highest bidder on any of the items
                 // If true, send and ERROR message "Cannot exit"
                 // Else, return a CAN_EXIT message
@@ -128,12 +151,16 @@ public class AuctionHouse {
             case ACCEPT_BID:
                 int userId = Integer.parseInt(split[1]);
                 int itemId = Integer.parseInt(split[2]);
+                highestBidUser.put(itemId, userId);
+                users.get(userId).writer.println(MessageEnum.ACCEPT);
                 // Change the highest bidder on the item to the userId in the message
                 // Send a ACCEPT message to the user
                 break;
             case REJECT_BID:
                 userId = Integer.parseInt(split[1]);
                 itemId = Integer.parseInt(split[2]);
+                message = MessageEnum.REJECT + ";" + userId + ";" + itemId + ";" + ahId + ";3";
+                users.get(userId).writer.println(message);
                 // Send a REJECT message to the user
                 break;
             case CAN_EXIT:
@@ -143,6 +170,7 @@ public class AuctionHouse {
                 break;
             case ERROR:
                 String errorMessage = split[1];
+                writer.println(MessageEnum.ERROR + ";" + errorMessage);
                 // Print the error message to the screen or something
                 break;
             default:
@@ -156,6 +184,12 @@ public class AuctionHouse {
         // To the bank, send an AUCTION_ENDED message
         // Remove the item associated with the itemId from the itemList
         // and remove the item timer from the itemTimer list
+        Item it = items.get(itemId);
+        int userId = highestBidUser.get(it.getItemId());
+        PrintWriter userWriter = users.get(userId).writer;
+        userWriter.println(MessageEnum.WINNER + ";" + ahId + ";3");
+        items.remove(itemId);
+        itemTimers.remove(itemId);
     }
 
     /**
@@ -174,9 +208,12 @@ public class AuctionHouse {
             String[] split = message.split(";");
             // Split will have all the elements from a ITEMS list from the bank
             // It can be checked that split[0] is ITEMS or not
-
+            int j= 1; // first index will be command, hence started at 1;
             for (int i = 0; i < 3; ++i) {
-                // TODO: Parse items from split. Put them in maps with key as the itemId
+              Item it = new Item(split[i+j], Integer.parseInt(split[i+j+1]), Double.parseDouble(split[i+j+2]), split[i+j+3]);
+              j += 4; // next Item starts after 4 `;`.
+              items.put(it.getItemId(), it);
+              highestBidUser.put(it.getItemId(), -1);
             }
         }
         catch (Exception e) {
@@ -189,7 +226,7 @@ public class AuctionHouse {
      *
      * @return A String of item toString()'s separated by '\n' characters.
      */
-    public String getItemsAsString() {
+    public static String getItemsAsString() {
         String output = "";
         ArrayList<Item> itemsAsList = new ArrayList<Item>(items.values());
         for (int i = 0; i < itemsAsList.size(); ++i) {

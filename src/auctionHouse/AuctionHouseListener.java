@@ -7,16 +7,17 @@ import common.MessageEnum;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.List;
 
 public class AuctionHouseListener extends Thread{
     private ServerSocket server;
-    private List<AuctionHouse.SocketInfo> userList;
+    private HashMap<Integer, AuctionHouse.SocketInfo> users;
     private boolean run;
 
-    public AuctionHouseListener(ServerSocket server, List<AuctionHouse.SocketInfo> userList) {
+    public AuctionHouseListener(ServerSocket server, HashMap<Integer, AuctionHouse.SocketInfo> userList) {
         this.server = server;
-        this.userList = userList;
+        this.users = userList;
 
         run = true;
     }
@@ -41,8 +42,8 @@ public class AuctionHouseListener extends Thread{
                 String[] split = line.split(";");
                 // Test if the message indicates a house
                 int userId = Integer.parseInt(split[0]);
-                synchronized (userList) {
-                    userList.add(new AuctionHouse.SocketInfo(socket, writer, reader));
+                synchronized (users) {
+                    users.put(userId, new AuctionHouse.SocketInfo(socket, writer, reader));
                 }
                 System.out.println("New user has logged in with id " + userId);
             }

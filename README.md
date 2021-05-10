@@ -61,7 +61,12 @@ to the lists that the ``Bank`` iterates over.
 
 ### Auction House
 
-
+This object is the core of Auction. It contains all the
+information about the list of Items being sold and socket
+information of Bank and list of Users. While initiating
+connection with User, it will store the information and
+update the highest bid user information as the bid request
+raises.
 
 ### User
 
