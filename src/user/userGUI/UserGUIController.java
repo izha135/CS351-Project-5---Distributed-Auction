@@ -1481,7 +1481,7 @@ public class UserGUIController {
 
                         // TODO: check exit condition
                         // FIXME: edit logic...to only bank
-                        System.out.println(checkBankExit);
+                        //System.out.println(checkBankExit);
 
                         if (checkBankExit) {
                             if (timer == bankActionTimer.getTimer()) {
