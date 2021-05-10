@@ -78,7 +78,7 @@ public class UserGUIController {
     private TreeItem<String> rootTreeItem;
     private List<CustomAuctionHouseTreeItem> houseTreeItemList = new ArrayList<>();
 
-    private String bankHostName = "10.147.20.205";
+    private String bankHostName = bankHostNameInput;
     private int port = 3030;
     private int userID;
     private BankAccount userBankAccount;

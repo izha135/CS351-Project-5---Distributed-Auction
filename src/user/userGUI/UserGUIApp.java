@@ -2,16 +2,14 @@ package user.userGUI;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
 import javafx.event.Event;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
-import javax.swing.*;
-
 public class UserGUIApp extends Application {
+    public static String bankHostNameInput;
     public static int bankPort;
     public static int housePort;
     public static String username;
@@ -71,8 +69,9 @@ public class UserGUIApp extends Application {
 //        username = args[2];
 
         // FIXME: move ports to readers...
-        bankPort = Integer.parseInt(args[0]);
-        username = args[1];
+        bankHostNameInput = args[0];
+        bankPort = Integer.parseInt(args[1]);
+        username = args[2];
 
         launch(args);
 //        UserGUIApp userGUIApp = new UserGUIApp();
