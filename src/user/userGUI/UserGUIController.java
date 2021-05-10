@@ -219,6 +219,8 @@ public class UserGUIController {
             CustomAuctionHouseTreeItem houseTreeView =
                     new CustomAuctionHouseTreeItem("House ID: " + houseID,
                             auctionHouseUser);
+            houseTreeView.setExpanded(true);
+
             rootTreeItem.getChildren().add(houseTreeView);
             houseTreeItemList.add(houseTreeView);
 
@@ -698,6 +700,10 @@ public class UserGUIController {
         // TODO: move the clear to when the command is processed...
         //houseItemList.clear();
 
+        System.out.println();
+        System.out.println("Current auction connection: "
+                + currentAuctionHouseUser);
+
         int houseID = currentAuctionHouseUser.getHouseID();
 
         System.out.println();
@@ -765,6 +771,8 @@ public class UserGUIController {
             itemRootTreeItem.getChildren().add(
                     new CustomItemTreeItem(
                             item.toString(), item));
+            itemRootTreeItem.setExpanded(true);
+
             currentAuctionHouseTreeItem.getChildren().add(
                     itemRootTreeItem);
         }
@@ -2015,13 +2023,36 @@ public class UserGUIController {
                 "Successfully", houseListString);
 
         System.out.println();
+        System.out.println("Refreshing Items list...");
+
+        for (AuctionHouseUser auctionHouseUser : entireHousesList) {
+            if (auctionHouseUser.equals(currentAuctionHouseUser)) {
+                currentAuctionHouseUser = auctionHouseUser;
+                break;
+            }
+        }
+
+        for (CustomAuctionHouseTreeItem customAuctionHouseTreeItem :
+                houseTreeItemList) {
+            if (customAuctionHouseTreeItem.equals(currentAuctionHouseTreeItem)) {
+                currentAuctionHouseTreeItem = customAuctionHouseTreeItem;
+                break;
+            }
+        }
+
+        System.out.println();
+        System.out.println("Current auction house: " + currentAuctionHouseUser);
+
+        if (currentAuctionHouseUser != null) {
+            askHouseItemList();
+        }
+
+        System.out.println();
         System.out.println("Auction House List setup successful");
     }
 
     private void showAlert(Alert.AlertType alertType, String titleAlert,
                                String contextStringAlert) {
-
-
 //        Platform.runLater(() -> {
 //            CustomAlert bankExitAlert = new CustomAlert(
 //                    alertType,
@@ -2039,8 +2070,6 @@ public class UserGUIController {
 
     private void showFinalAlert(Alert.AlertType alertType, String titleAlert,
                            String contextStringAlert) {
-
-
 //        Platform.runLater(() -> {
 //            CustomAlert bankExitAlert = new CustomAlert(
 //                    alertType,
