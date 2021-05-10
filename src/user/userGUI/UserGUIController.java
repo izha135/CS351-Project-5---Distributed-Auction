@@ -1794,11 +1794,6 @@ public class UserGUIController {
         int itemID = Integer.parseInt(outBidArgs.get(2));
         double newBidAmount = Double.parseDouble(outBidArgs.get(3));
 
-        synchronized (currentBidList) {
-            currentBidList.remove(Bid.getBidFromItemID(currentBidList,
-                    itemID));
-        }
-
         Bid currentBid = Bid.getBidFromItemID(currentBidList,
                 itemID);
 
@@ -1807,6 +1802,11 @@ public class UserGUIController {
 
         guiStuff.updateUserBlockAmountLabel(bidAmount,
                 false);
+
+        synchronized (currentBidList) {
+            currentBidList.remove(Bid.getBidFromItemID(currentBidList,
+                    itemID));
+        }
 
         //Alert outBidAlert = new Alert(Alert.AlertType.WARNING);
         MessageEnum messageEnum = currentFullMessage.getMessageEnum();
