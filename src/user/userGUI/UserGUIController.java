@@ -27,6 +27,9 @@ public class UserGUIController {
     Pane pane;
 
     @FXML
+    Label usernameLabel;
+
+    @FXML
     Label userIDAccountLabel;
 
     @FXML
@@ -160,7 +163,7 @@ public class UserGUIController {
 
         //updateAuctionHouseList();
 
-        guiStuff = new GuiStuff(userIDAccountLabel,
+        guiStuff = new GuiStuff(usernameLabel, userIDAccountLabel,
                 userAccountBalanceLabel,
                 currentAuctionHouseLabel,
                 currentItemSelectedLabel,
@@ -193,6 +196,7 @@ public class UserGUIController {
     }
 
     private void initializeLabels() {
+        guiStuff.updateUsernameLabel(username);
         guiStuff.updateUserIDAccountLabel(userID);
         guiStuff.updateUserAccountBalanceLabel(
                 userBankAccount.getBalance());
@@ -305,12 +309,12 @@ public class UserGUIController {
         if (!currentBidList.contains(currentBid)) {
             currentBidList.add(currentBid);
 
-            userBankAccount.removeFunds(bidAmount);
-
-            // TODO: check if the same item was already bid on...
-            guiStuff.removeFundsFromBalanceLabel(bidAmount);
-            guiStuff.updateUserBlockAmountLabel(bidAmount,
-                    true);
+//            userBankAccount.removeFunds(bidAmount);
+//
+//            // TODO: check if the same item was already bid on...
+//            guiStuff.removeFundsFromBalanceLabel(bidAmount);
+//            guiStuff.updateUserBlockAmountLabel(bidAmount,
+//                    true);
         } else {
 //            CustomAlert bidInProgressAlert =
 //                    new CustomAlert(Alert.AlertType.ERROR,
@@ -519,9 +523,9 @@ public class UserGUIController {
 
         userBankAccount.removeFunds(bidAmount);
 
-        //guiStuff.updateUserAccountBalanceLabel(bidAmount);
+        guiStuff.removeFundsFromBalanceLabel(bidAmount);
         guiStuff.updateUserBlockAmountLabel(bidAmount,
-                false);
+                true);
 
 //                currentBid = new Bid(bidAmount, houseID, currentItemSelected,
 //                        bidMessageEnum);
@@ -572,11 +576,11 @@ public class UserGUIController {
 
 //                currentBid = new Bid(bidAmount, houseID, currentItemSelected,
 //                        bidMessageEnum);
-        userBankAccount.addFunds(bidAmount);
-
-        guiStuff.addFundsToBalanceLabel(bidAmount);
-        guiStuff.updateUserBlockAmountLabel(bidAmount,
-                false);
+//        userBankAccount.addFunds(bidAmount);
+//
+//        guiStuff.addFundsToBalanceLabel(bidAmount);
+//        guiStuff.updateUserBlockAmountLabel(bidAmount,
+//                false);
 
         guiStuff.updateBidHistoryTextArea(currentBid.toString());
 
@@ -1446,6 +1450,10 @@ public class UserGUIController {
                     0, 250);
         }
 
+        public Timer getTimer() {
+            return timer;
+        }
+
         private class UserGUIActionTimerTask extends TimerTask {
 
             @Override
@@ -1476,18 +1484,19 @@ public class UserGUIController {
                         System.out.println(checkBankExit);
 
                         if (checkBankExit) {
-                            // get a handle to the stage
-                            // maybe this was why the stage wasn't closing...
+                            if (timer == bankActionTimer.getTimer()) {
+                                // get a handle to the stage
+                                // maybe this was why the stage wasn't closing...
 //                        Platform.runLater(() -> {
 //                            Stage stage = (Stage) userExitButton.getScene().getWindow();
 //                            stage.close();
 //                        });
-                            System.out.println("Before the stage is exited...");
+                                System.out.println("Before the stage is exited...");
 
-                            Stage stage = (Stage) userExitButton.getScene().getWindow();
-                            stage.close();
+                                Stage stage = (Stage) userExitButton.getScene().getWindow();
+                                stage.close();
 
-                            // FIXME: might cause an error after the stage is closed...
+                                // FIXME: might cause an error after the stage is closed...
 //                        CustomAlert customAlert =
 //                                new CustomAlert(Alert.AlertType.CONFIRMATION,
 //                                        "Exit " +
@@ -1496,42 +1505,41 @@ public class UserGUIController {
 //                                                "was exited successfully.");
 //                        customAlert.show();
 
-                            System.out.println("Before the alert...");
+//                            // FIXME: test
+//                            showAlert(Alert.AlertType.ERROR,
+//                                    "Test", "");
 
-                            showAlert(Alert.AlertType.CONFIRMATION,
-                                    "Exit " +
-                                            "Program Successful",
-                                    "The auction house program " +
-                                            "was exited successfully.");
+                                // TODO: stop the (action) timers...
+                                System.out.println("Before closing actions...");
 
-                            // FIXME: test
-                            showAlert(Alert.AlertType.ERROR,
-                                    "Test", "");
+                                stopRunning();
+                                if (houseActionTimer != null) {
+                                    houseActionTimer.stopRunning();
+                                }
 
-                            // TODO: stop the (action) timers...
-                            System.out.println("Before closing actions...");
+                                // TODO: ALSO THE READER TIMERS
+                                System.out.println("Before closing readers...");
 
-                            stopRunning();
-                            if (houseActionTimer != null) {
-                                houseActionTimer.stopRunning();
+                                bankReaderTimer.stopRunning();
+                                if (houseReaderTimer != null) {
+                                    houseReaderTimer.stopRunning();
+                                }
+
+                                System.out.println("Before closing stream...");
+
+                                closeStreams();
+
+                                System.out.println("Before the alert...");
+
+                                showFinalAlert(Alert.AlertType.CONFIRMATION,
+                                        "Exit " +
+                                                "Program Successful",
+                                        "The auction house program " +
+                                                "was exited successfully.");
+
+//                            System.out.println("Exiting program...");
+//                            System.exit(0);
                             }
-
-                            // TODO: ALSO THE READER TIMERS
-                            System.out.println("Before closing readers...");
-
-                            bankReaderTimer.stopRunning();
-                            if (houseReaderTimer != null) {
-                                houseReaderTimer.stopRunning();
-                            }
-
-                            closeStreams();
-
-                            System.out.println("Before closing stream...");
-
-                            closeStreams();
-
-                            System.out.println("Exiting program...");
-                            System.exit(0);
                         }
                     }
                 });
@@ -1741,9 +1749,10 @@ public class UserGUIController {
         double newBidAmount = Double.parseDouble(outBidArgs.get(3));
         int lastBidderID = Integer.parseInt(outBidArgs.get(4));
 
+        Bid currentBid = Bid.getBidFromItemID(currentBidList,
+                itemID);
         synchronized (currentBidList) {
-            currentBidList.remove(Bid.getBidFromItemID(currentBidList,
-                    itemID));
+            currentBidList.remove(currentBid);
         }
 
         //Alert outBidAlert = new Alert(Alert.AlertType.WARNING);
@@ -1755,6 +1764,15 @@ public class UserGUIController {
 //        outBidAlert.show();
 
         if (lastBidderID == userID) {
+            assert currentBid != null;
+            double bidAmount = currentBid.getBidAmount();
+
+            userBankAccount.addFunds(bidAmount);
+
+            guiStuff.addFundsToBalanceLabel(bidAmount);
+            guiStuff.updateUserBlockAmountLabel(bidAmount,
+                    false);
+
             showAlert(Alert.AlertType.WARNING,
                     messageEnum.name(), "Alert from House ID: " + houseID +
                             "\nSorry, you have been outbid by User ID: " + outBidderID +
@@ -1780,6 +1798,15 @@ public class UserGUIController {
             currentBidList.remove(Bid.getBidFromItemID(currentBidList,
                     itemID));
         }
+
+        Bid currentBid = Bid.getBidFromItemID(currentBidList,
+                itemID);
+
+        assert currentBid != null;
+        double bidAmount = currentBid.getBidAmount();
+
+        guiStuff.updateUserBlockAmountLabel(bidAmount,
+                false);
 
         //Alert outBidAlert = new Alert(Alert.AlertType.WARNING);
         MessageEnum messageEnum = currentFullMessage.getMessageEnum();
@@ -2003,10 +2030,37 @@ public class UserGUIController {
 //            bankExitAlert.show();
 //        });
 
-        CustomAlert bankExitAlert = new CustomAlert(
+        CustomAlert customAlert = new CustomAlert(
                 alertType,
                 titleAlert,
                 contextStringAlert);
-        bankExitAlert.show();
+        customAlert.show();
+    }
+
+    private void showFinalAlert(Alert.AlertType alertType, String titleAlert,
+                           String contextStringAlert) {
+
+
+//        Platform.runLater(() -> {
+//            CustomAlert bankExitAlert = new CustomAlert(
+//                    alertType,
+//                    titleAlert,
+//                    contextStringAlert);
+//            bankExitAlert.show();
+//        });
+
+        CustomAlert customAlert = new CustomAlert(
+                alertType,
+                titleAlert,
+                contextStringAlert);
+        customAlert.show();
+
+        // might not be the best way to handle the end of the program
+        // need to make sure everything is closed and resources are released...
+        customAlert.setOnCloseRequest(event -> {
+            System.out.println();
+            System.out.println("Exiting program...");
+            System.exit(0);
+        });
     }
 }

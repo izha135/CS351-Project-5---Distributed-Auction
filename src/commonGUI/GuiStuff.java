@@ -2,12 +2,13 @@ package commonGUI;
 
 import common.AuctionHouseUser;
 import common.Item;
-import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 public class GuiStuff {
+    private Label usernameLabel;
     private Label userIDAccountLabel;
     private Label userAccountBalanceLabel;
     private Label userBlockAmountLabel;
@@ -17,6 +18,7 @@ public class GuiStuff {
     private Label bidHistoryLabel;
     private TextArea bidHistoryTextArea;
 
+    private CustomLabel usernameCustomLabel;
     private CustomLabel userIDAccountCustomLabel;
     private CustomLabel userAccountBalanceCustomLabel;
     private CustomLabel userBlockAmountCustomLabel;
@@ -24,10 +26,12 @@ public class GuiStuff {
     private CustomLabel currentItemSelectedCustomLabel;
     private CustomLabel bidHistoryCustomLabel;
 
-    public GuiStuff(Label userIDAccountLabel, Label userAccountBalanceLabel,
+    public GuiStuff(Label usernameLabel, Label userIDAccountLabel,
+                    Label userAccountBalanceLabel,
                     Label currentAuctionHouseLabel, Label currentItemSelectedLabel,
                     TextField userBidAmountTextField, Label bidHistoryLabel,
                     Label userBlockAmountLabel, TextArea bidHistoryTextArea) {
+        this.usernameLabel = usernameLabel;
         this.userIDAccountLabel = userIDAccountLabel;
         this.userAccountBalanceLabel = userAccountBalanceLabel;
         this.userBlockAmountLabel = userBlockAmountLabel;
@@ -36,6 +40,7 @@ public class GuiStuff {
         this.userBidAmountTextField = userBidAmountTextField;
         this.bidHistoryLabel = bidHistoryLabel;
 
+        usernameCustomLabel = new CustomLabel(usernameLabel);
         userIDAccountCustomLabel = new CustomLabel(userIDAccountLabel);
         userAccountBalanceCustomLabel =
                 new CustomLabel(userAccountBalanceLabel);
@@ -50,6 +55,11 @@ public class GuiStuff {
 
     // FIXME: update on startup...
     // shouldn't be needed except for the initial startup...
+    public void updateUsernameLabel(String username) {
+        usernameCustomLabel.updateLabel(username);
+        usernameLabel.setText(usernameCustomLabel.getText());
+    }
+
     public void updateUserIDAccountLabel(int userID) {
 //        Platform.runLater(() -> {
 //            userIDAccountCustomLabel.updateLabel(
@@ -206,6 +216,15 @@ public class GuiStuff {
         bidHistoryTextArea.setText(currentBidHistory);
     }
 
+    /**
+     * Should only be used for currentSelectedItemLabel and
+     * currentAuctionHouseLabel
+     *
+     * The CustomLabel object corresponding to the Label given has to be
+     * gotten to change the outputMessage member variable and update the
+     * label correctly
+     * @param label
+     */
     public void resetLabel(Label label) {
 //        Platform.runLater(() -> {
 //            CustomLabel customLabel = new CustomLabel(label);
@@ -213,8 +232,31 @@ public class GuiStuff {
 //            label.setText(customLabel.getText());
 //        });
 
-        CustomLabel customLabel = new CustomLabel(label);
-        customLabel.resetLabel();
-        label.setText(customLabel.getText());
+        CustomLabel currentCustomLabel;
+        if (label == currentItemSelectedLabel) {
+            currentCustomLabel = currentItemSelectedCustomLabel;
+        } else if (label == currentAuctionHouseLabel) {
+            currentCustomLabel = currentAuctionHouseCustomLabel;
+        } else { // shouldn't happen...
+            System.out.println();
+            System.out.println("Error resetting the label...");
+
+            showAlert(Alert.AlertType.ERROR,
+                    "Error Resetting the Label",
+                    "Wrong label being updated...");
+            return;
+        }
+
+        currentCustomLabel.resetLabel();
+        label.setText(currentCustomLabel.getText());
+    }
+
+    private void showAlert(Alert.AlertType alertType, String titleAlert,
+                           String contextStringAlert) {
+        CustomAlert bankExitAlert = new CustomAlert(
+                alertType,
+                titleAlert,
+                contextStringAlert);
+        bankExitAlert.show();
     }
 }
