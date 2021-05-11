@@ -7,6 +7,11 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
+/**
+ * NOT USED
+ *
+ * Some leftover code when testing out some stuff that John C. suggested
+ */
 public class UserGUIJFXPanel extends JFXPanel {
     private void initialize() {
         try {

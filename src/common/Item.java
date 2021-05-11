@@ -1,7 +1,18 @@
 package common;
 
 import java.io.Serializable;
+import java.util.Objects;
 
+/**
+ * REMOVE SERIALIZABLE
+ *
+ * The class that encompasses everything related to storing an item for the user
+ *
+ * Contains the item name, item ID, house ID from where item is gotten from,
+ * the minimum bid amount for the item, and some item description (we decided
+ * the item description were going to be brief for our list, but I think the
+ * bank will take in some item list and the items can vary from that given file)
+ */
 public class Item implements Serializable {
     private String itemName;
     private int itemId;
@@ -61,6 +72,19 @@ public class Item implements Serializable {
 
     public void setItemDesc(String itemDesc) {
         this.itemDesc = itemDesc;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Item item = (Item) o;
+        return itemId == item.itemId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(itemId);
     }
 
     @Override

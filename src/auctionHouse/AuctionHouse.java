@@ -9,6 +9,7 @@
 
 package auctionHouse;
 
+import bank.Bank;
 import common.Item;
 import common.MessageEnum;
 
@@ -17,7 +18,11 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class AuctionHouse {
 
@@ -239,6 +244,15 @@ public class AuctionHouse {
                 // Process a request to exit the house
             case EXIT:
                 userId = Integer.parseInt(split[1]);
+                // Get prevHighBidder for all the items
+                ArrayList<Integer> allUsers = new ArrayList<Integer>(highestBidUser.values());
+                for(Integer h : allUsers){
+                    if(userId == h){
+                        writer.println(MessageEnum.ERROR + ";" + "Cannot exit;");
+                        break;
+                    }
+                }
+                writer.println(MessageEnum.CAN_EXIT);
                 // Check if the user is the highest bidder on any of the items
                 boolean canExit = true;
                 synchronized (items) {
@@ -358,6 +372,7 @@ public class AuctionHouse {
                 // Process a message from an error
             case ERROR:
                 String errorMessage = split[1];
+                writer.println(MessageEnum.ERROR + ";" + errorMessage);
                 // Print the error message to the screen or something
                 System.out.println("Error: " + errorMessage);
                 break;
@@ -430,7 +445,7 @@ public class AuctionHouse {
      *
      * @return A String of item toString()'s separated by '\n' characters.
      */
-    public String getItemsAsString() {
+    public static String getItemsAsString() {
         String output = "";
         ArrayList<Item> itemsAsList = new ArrayList<Item>(items.values());
         for (int i = 0; i < itemsAsList.size(); ++i) {

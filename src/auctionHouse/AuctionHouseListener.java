@@ -11,6 +11,7 @@ package auctionHouse;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.List;
 
 public class AuctionHouseListener extends Thread{
@@ -27,7 +28,7 @@ public class AuctionHouseListener extends Thread{
      */
     public AuctionHouseListener(ServerSocket server, List<AuctionHouse.SocketInfo> userList) {
         this.server = server;
-        this.userList = userList;
+        this.users = userList;
 
         run = true;
     }

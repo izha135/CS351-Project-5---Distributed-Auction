@@ -7,6 +7,15 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * REMOVE SERIALIZABLE
+ *
+ * The class that encompasses everything related to making a bid for the user
+ *
+ * Contains the bid amount, house ID that contains the item to bid, the
+ * actual item object that also encompasses the item to be bid on, and the
+ * MessageEnum object (holds the command for reference)
+ */
 public class Bid implements Serializable {
     private double bidAmount;
     private int houseID;
@@ -69,7 +78,8 @@ public class Bid implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Bid bid = (Bid) o;
-        return Objects.equals(item, bid.item);
+        //return Objects.equals(item, bid.item);
+        return item.equals(bid.item);
     }
 
     @Override
@@ -77,22 +87,24 @@ public class Bid implements Serializable {
         return Objects.hash(item);
     }
 
-    //    public static Bid getBidFromItemID(List<Bid> bidList, int itemIDToSearch) {
-//        for (Bid bid : bidList) {
-//            Item currentItem = bid.getItem();
-//
-//            if () {
-//
-//            }
-//        }
-//    }
-
     @Override
     public String toString() {
-        return messageEnum.name() + ": (House ID: " + houseID + ") "
+        String messageEnumName;
+        if (messageEnum == null) {
+            messageEnumName = "[Empty]";
+        } else {
+            messageEnumName = messageEnum.name();
+        }
+
+        return messageEnumName + ": (House ID: " + houseID + ") "
                 + item.getTreeItemTitle() + " at bid" +
                 " $" + bidAmount;
     }
+
+    // The methods below are method overloading of getAlternativeBidString()
+    // to print to the display for the user GUI (Edit: just realized that a
+    // bid object could been created -- new constructor with the item ID
+    // instead of a item object -- for some of these...)
 
     public static String getAlternateBidString(MessageEnum messageEnum,
                                                int houseID, int itemID,
@@ -100,6 +112,15 @@ public class Bid implements Serializable {
         return messageEnum.name() + ": (House ID: " + houseID
                 + ") Item ID - " + itemID + " at bid" +
                 " $" + bidAmount;
+    }
+
+    public static String getAlternateBidString(MessageEnum messageEnum,
+                                               int houseID, int itemID,
+                                               double bidAmount,
+                                               int lastBidderID) {
+        return messageEnum.name() + ": (House ID: " + houseID
+                + ") Item ID - " + itemID + " at bid" +
+                " $" + bidAmount + " from User ID: " + lastBidderID;
     }
 
     public static String getAlternateBidString(MessageEnum messageEnum,
@@ -112,6 +133,7 @@ public class Bid implements Serializable {
                 " $" + bidAmount;
     }
 
+
     public static String getAlternateBidString(MessageEnum messageEnum,
                                                int houseID,
                                                String itemName, int itemID,
@@ -120,6 +142,6 @@ public class Bid implements Serializable {
         return messageEnum.name() + ": (House ID: " + houseID + ") "
                 + itemName + "(item ID - "
                 + itemID + ") at bid" +
-                " $" + bidAmount;
+                " $" + bidAmount + " from winner username: " + winnerUsername;
     }
 }
