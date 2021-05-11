@@ -72,5 +72,6 @@ public class AuctionHouseListener extends Thread{
      */
     public synchronized void stopRunning() {
         run = false;
+        System.exit(0);
     }
 }

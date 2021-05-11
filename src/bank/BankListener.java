@@ -88,8 +88,9 @@ public class BankListener extends Thread{
                 if (MessageEnum.parseCommand(split[0]) == MessageEnum.HOUSE) {
                     // Houses start with a 0 account balance
                     BankAccount account = new BankAccount(0, houseId);
+                    int port = Integer.parseInt(split[1]);
                     synchronized (houseList) {
-                        houseList.add(new Bank.SocketInfo(socket, writer, reader, houseId, "", account));
+                        houseList.add(new Bank.SocketInfo(socket, writer, reader, houseId, "", account, port));
                     }
                     synchronized (display) {
                         display.addHouse(houseId);
@@ -101,7 +102,7 @@ public class BankListener extends Thread{
                 } else {
                     BankAccount account = new BankAccount(INITIAL_BALANCE, userId);
                     synchronized (userList) {
-                        userList.add(new Bank.SocketInfo(socket, writer, reader, userId, split[1], account));
+                        userList.add(new Bank.SocketInfo(socket, writer, reader, userId, split[1], account, -1));
                     }
                     synchronized (display) {
                         display.addUser(userId, split[1], INITIAL_BALANCE);

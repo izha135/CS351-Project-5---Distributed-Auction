@@ -83,7 +83,7 @@ public class Bank{
                 }
                 if(scan.ready()) {
                     String inputString = scan.readLine();
-                    if(inputString.equals("Stop")) {
+                    if(inputString.equalsIgnoreCase("Stop")) {
                         run = false;
                         listener.stopThread();
                     }
@@ -165,7 +165,8 @@ public class Bank{
                 double itemBid = Double.parseDouble(splitText[3]);
                 int itemId = Integer.parseInt(splitText[4]);
                 int previousHidBidUserId = Integer.parseInt(splitText[5]);
-                handleHouseValidBid(houseId, userId, itemBid, itemId, previousHidBidUserId);
+                double previousBid = Double.parseDouble(splitText[6]);
+                handleHouseValidBid(houseId, userId, itemBid, itemId, previousHidBidUserId, previousBid);
                 break;
             case AUCTION_ENDED:
                 // The item being bid for has now been sold
@@ -190,9 +191,11 @@ public class Bank{
         // Create and send a message with all of the house ids separated by ;
         String message = MessageEnum.HOUSE_LIST.toString();
         String hostName;
+        int port;
         for(int i = 0; i < houseList.size(); i++) {
             hostName = houseList.get(i).socket.getInetAddress().getHostAddress();
-            message += ";" + houseList.get(i).id +";" + hostName;
+            port = houseList.get(i).port;
+            message += ";" + houseList.get(i).id +";" + hostName + ";" + port;
         }
         PrintWriter userWriter = getUser(userId).writer;
         userWriter.println(message);
@@ -201,9 +204,14 @@ public class Bank{
     private static void handleUserExit(int userId) {
         boolean canExit = true;
 
+        if(getUser(userId) == null) {
+            System.out.println("Invalid exit request: User does not exist");
+            return;
+        }
+
         // Also check if the user is currently the highest bidder on some item
         BankAccount account = getUser(userId).account;
-        if(account.getBalance() != account.getRemainingBalance()) canExit = false;
+        if(Math.abs(account.getBalance() - account.getRemainingBalance()) >= 0.01) canExit = false;
 
         PrintWriter userWriter = getUser(userId).writer;
         if(canExit) {
@@ -243,7 +251,7 @@ public class Bank{
     }
 
     private static void handleHouseValidBid(int houseId, int userId, double itemBid, int itemId,
-                                            int previousHidBidUserId) {
+                                            int previousHidBidUserId, double previousBid) {
         PrintWriter houseWriter = getHouse(houseId).writer;
         BankAccount account = getUser(userId).account;
 
@@ -258,16 +266,19 @@ public class Bank{
             SocketInfo oldUser = getUser(previousHidBidUserId);
 
             newUser.account.removeFunds(itemBid);
-            if (oldUser != null) oldUser.account.addFunds(itemBid);
+            if (oldUser != null) oldUser.account.addFunds(previousBid);
 
             display.changeUserRemaining(userId, newUser.account.getRemainingBalance());
+            if (oldUser != null) display.changeUserRemaining(previousHidBidUserId,
+                                                             oldUser.account.getRemainingBalance());
 
             // Inform all other users of them being outbid
             for(int i = 0; i < userList.size(); i++) {
                 SocketInfo user = userList.get(i);
                 if(user.id != userId) {
                     PrintWriter writer = user.writer;
-                    writer.println(MessageEnum.OUTBID + ";" + houseId + ";" + itemId + ";" + userId + ";" + itemBid);
+                    writer.println(MessageEnum.OUTBID + ";" + houseId + ";" + itemId + ";" + userId + ";" + itemBid+ ";"
+                                   + previousHidBidUserId);
                 }
             }
         }
@@ -301,7 +312,7 @@ public class Bank{
             }
             // Message all other users that this item has been sold (cannot bid on it anymore)
             else {
-                userWriter.println(MessageEnum.ITEM_WON + ";" + houseId + ";" + itemName + ";" + itemId +
+                userWriter.println(MessageEnum.ITEM_WON + ";" + houseId + ";" + itemName + ";" + itemId + ";" +
                         getUser(winningUser).username + ";" + itemBid);
             }
         }
@@ -387,15 +398,17 @@ public class Bank{
         final int id;
         final String username;
         final BankAccount account;
+        final int port;
 
         public SocketInfo(Socket socket, PrintWriter writer, BufferedReader reader, int id, String username,
-                          BankAccount account) {
+                          BankAccount account, int port) {
             this.socket = socket;
             this.writer = writer;
             this.reader = reader;
             this.id = id;
             this.username = username;
             this.account = account;
+            this.port = port;
         }
     }
 }

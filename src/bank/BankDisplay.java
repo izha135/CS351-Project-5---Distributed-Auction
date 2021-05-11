@@ -212,7 +212,7 @@ public class BankDisplay {
             }
 
             Label label = new Label(topBidder + "  " + bid);
-            label.setTranslateX(200);
+            label.setTranslateX(300);
             items.get(itemId).getChildren().add(label);
         }
 

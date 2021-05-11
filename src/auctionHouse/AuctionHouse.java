@@ -17,10 +17,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class AuctionHouse {
 
@@ -39,6 +36,8 @@ public class AuctionHouse {
     // A variable that dictates if the 'listener' for messages
     // should keep running
     private static boolean run;
+    // Listener for incoming requests to join the house
+    private static AuctionHouseListener listener;
 
     /**
      * Creates an AuctionHouse that has three random items for sale.
@@ -68,7 +67,7 @@ public class AuctionHouse {
         }
         // Create a listener listening for users trying to join
         // the auction house
-        AuctionHouseListener listener = new AuctionHouseListener(server, userList);
+        listener = new AuctionHouseListener(server, userList);
         listener.start();
 
         // Open a socket to the bank
@@ -79,7 +78,7 @@ public class AuctionHouse {
             bankWriter = writer;
 
             // Send a 'HOUSE' message to inform the bank of being a house
-            writer.println(MessageEnum.HOUSE.toString());
+            writer.println(MessageEnum.HOUSE.toString() + ";" + userPort);
             while(!reader.ready()) System.out.print("");
 
             // This is dealing with the login message from the Bank
@@ -89,6 +88,9 @@ public class AuctionHouse {
 
             // Get items for the auction house from the bank
             populateItems(writer, reader);
+
+            // Create command line input stuff
+            BufferedReader scan = new BufferedReader(new InputStreamReader(System.in));
 
             // Now listening and parsing messages
             run = true;
@@ -104,7 +106,18 @@ public class AuctionHouse {
                 if(reader.ready()) {
                     // Look for bank messages
                     message = reader.readLine();
-                    parseBankMessage(message, writer);
+                    parseBankMessage(message, writer, socket);
+                }
+                if(scan.ready()) {
+                    message = scan.readLine();
+                    if(message.equalsIgnoreCase("exit")) {
+                        if(userList.size() != 0) {
+                            System.out.println("Cannot exit. Users are still connected");
+                        }
+                        else {
+                            writer.println(MessageEnum.EXIT + ";" + ahId);
+                        }
+                    }
                 }
             }
         }
@@ -161,6 +174,24 @@ public class AuctionHouse {
                         }
                     }
                 }
+                // Reset the timers
+                if(relevantItem.getBidderId() == -1) {
+                    TimerThread thread = new TimerThread(itemId);
+                    synchronized (itemTimers){
+                        itemTimers.put(itemId, thread);
+                    }
+                    thread.start();
+                }
+                else {
+                    // Otherwise, reset the timer with a valid bid
+                    TimerThread thread = itemTimers.get(itemId);
+                    if(thread == null) {
+                        System.out.println("Something weird happened");
+                    }
+                    else {
+                        thread.resetTimer();
+                    }
+                }
                 if(relevantItem == null || relevantItem.getItemBid() > bidAmount) {
                     // If not, send a REJECT message (formatted) to the user
                     String userMessage = MessageEnum.REJECT.toString();
@@ -171,7 +202,7 @@ public class AuctionHouse {
                     // Else, send a VALID_BID message to the bank
                     String bankMessage = MessageEnum.VALID_BID.toString();
                     bankMessage += ";" + houseId + ";" + userId + ";" + bidAmount + ";";
-                    bankMessage += itemId + ";" + relevantItem.getBidderId();
+                    bankMessage += itemId + ";" + relevantItem.getBidderId() + ";" + relevantItem.getItemBid();
                     bankWriter.println(bankMessage);
                 }
                 break;
@@ -222,12 +253,21 @@ public class AuctionHouse {
                 if(!canExit) {
                     // If true, send and ERROR message "Cannot exit"
                     userMessage = MessageEnum.ERROR + ";Cannot Exit";
+                    userWriter.println(userMessage);
                 }
                 else {
                     // Else, return a CAN_EXIT message
-                    userMessage = MessageEnum.CAN_EXIT.toString(); //+ ";" + ahId;
+                    userMessage = MessageEnum.CAN_EXIT.toString() + ";" + ahId;
+                    userWriter.println(userMessage);
+
+                    try {
+                        getUser(userId).socket.close();
+                    }
+                    catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                    userList.remove(getUser(userId));
                 }
-                userWriter.println(userMessage);
                 break;
             default:
                 System.out.println("Error: Unhandled user message");
@@ -239,7 +279,7 @@ public class AuctionHouse {
      * @param message The message to parse
      * @param bankWriter The writer to send messages to the bank
      */
-    public static void parseBankMessage(String message, PrintWriter bankWriter) {
+    public static void parseBankMessage(String message, PrintWriter bankWriter, Socket socket) {
         System.out.println(message);
 
         // Part the message
@@ -307,6 +347,13 @@ public class AuctionHouse {
                 // The bank says it is okay to exit
                 run = false;
                 // Do other things to exit gracefully
+                try {
+                    socket.close();
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+                listener.stopRunning();
                 break;
                 // Process a message from an error
             case ERROR:
@@ -350,7 +397,9 @@ public class AuctionHouse {
      * This method fills the auctionHouse with 3 items from bank.
      */
     public static void populateItems(PrintWriter writer, BufferedReader reader) {
-        writer.println(MessageEnum.GET_ITEMS_FROM_BANK + ";" + ahId + ";3");
+        int count = (int) Math.floor(3 + 2 * Math.random());
+
+        writer.println(MessageEnum.GET_ITEMS_FROM_BANK + ";" + ahId + ";" + count);
 
         try {
             while(!reader.ready()) System.out.print("");
@@ -361,7 +410,7 @@ public class AuctionHouse {
             // Split will have all the elements from a ITEMS list from the bank
             // It can be checked that split[0] is ITEMS or not
 
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < count; i++) {
                 String itemName = split[4*i+3];
                 int itemId = Integer.parseInt(split[4*i+4]);
                 double itemBid = Double.parseDouble(split[4*i+5]);
