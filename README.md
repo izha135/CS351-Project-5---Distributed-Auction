@@ -67,6 +67,10 @@ for creating the items that can be sold by the auction
 houses in order to avoid duplicate items being sold in
 different auction houses.
 
+The `Bank` can be stopped by writing 'stop' in the
+terminal. Will stop execution only if there are no
+users or houses connected to the bank.
+
 #### BankDisplay
 
 This is a nice graphical display showing most actions
@@ -98,6 +102,10 @@ to the lists that the ``Bank`` iterates over.
 
 This package contains all the logic behind the Auction 
 Houses for this project. 
+
+The `AuctionHouse` can be stopped by writing 'exit' in
+the terminal. This will not allow an exit if there are
+still users connected to the `AuctionHouse`
 
 #### AuctionHouse
 
@@ -246,6 +254,22 @@ the project not in our sections of focus as well.
 All communication protocols can be found in the docs
 folder.
 
-- Some of the classes in the project extend `Serializable`, but that marker wasn't used as we decided to stick only with strings when sending stuff through the sockets (since the messages could be parsed out on either end of communication and objects could be created on the ends, instead of writing and sending objects)
+- Some of the classes in the project extend `Serializable`, 
+  but that marker wasn't used as we decided to stick only 
+  with strings when sending stuff through the sockets (since 
+  the messages could be parsed out on either end of communication 
+  and objects could be created on the ends, instead of writing 
+  and sending objects)
 
-- As with other projects, only the really important methods were commented (whereas `getter` and `setter` methods and relatively simple and short methods should be apparent). Especially with this project, all of the methods were broken up into their functionality and the names were pretty useful in this case. The important thing for the user, though, was how the methods were generally grouped into `ask` and `get` methods (another prefix besides `get` would probably been better so not to be confused with `getter` methods) where the `ask` methods would prompt the respective writer to write a given message and the `get` would execute the response of a given message.
+- As with other projects, only the really important methods 
+  were commented (whereas `getter` and `setter` methods and
+  relatively simple and short methods should be apparent). 
+  Especially with this project, all of the methods were 
+  broken up into their functionality and the names were 
+  pretty useful in this case. The important thing for the 
+  user, though, was how the methods were generally grouped 
+  into `ask` and `get` methods (another prefix besides `get`
+  would probably been better so not to be confused with `getter` 
+  methods) where the `ask` methods would prompt the respective 
+  writer to write a given message and the `get` would execute 
+  the response of a given message.

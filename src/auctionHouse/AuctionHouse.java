@@ -244,15 +244,6 @@ public class AuctionHouse {
                 // Process a request to exit the house
             case EXIT:
                 userId = Integer.parseInt(split[1]);
-                // Get prevHighBidder for all the items
-                ArrayList<Integer> allUsers = new ArrayList<Integer>(highestBidUser.values());
-                for(Integer h : allUsers){
-                    if(userId == h){
-                        writer.println(MessageEnum.ERROR + ";" + "Cannot exit;");
-                        break;
-                    }
-                }
-                writer.println(MessageEnum.CAN_EXIT);
                 // Check if the user is the highest bidder on any of the items
                 boolean canExit = true;
                 synchronized (items) {
@@ -372,7 +363,6 @@ public class AuctionHouse {
                 // Process a message from an error
             case ERROR:
                 String errorMessage = split[1];
-                writer.println(MessageEnum.ERROR + ";" + errorMessage);
                 // Print the error message to the screen or something
                 System.out.println("Error: " + errorMessage);
                 break;

@@ -303,6 +303,8 @@ public class Bank{
         account = getHouse(houseId).account;
         account.setBalance(account.getBalance() + itemBid);
 
+        System.out.println("House " + houseId + " now has balance " + account.getBalance());
+
         for(int i = 0; i < userList.size(); i++) {
             PrintWriter userWriter = userList.get(i).writer;
             // Message item winner of their winnings
