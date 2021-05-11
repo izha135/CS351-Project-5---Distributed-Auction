@@ -11,6 +11,8 @@ package bank;
 
 import common.BankAccount;
 import common.MessageEnum;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -63,8 +65,10 @@ public class BankListener extends Thread{
         // Always keep accepting incoming socket requests for the duration of the program
         while(run) {
             try{
+                //System.out.println(serverSocket);
                 Socket socket = serverSocket.accept();
-                System.out.println("Accepted!");
+                System.out.println("Socket Inet Address Host name: " + socket.getInetAddress().getHostName());
+                System.out.println("Socket Inet Address Host address: " + socket.getInetAddress().getHostAddress());
 
                 InputStream input = socket.getInputStream();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(input));
@@ -75,8 +79,8 @@ public class BankListener extends Thread{
                 // Wait until a message indicating what kind of object is at the other end of the socket
                 // For the limited number of sockets in this project, having this (short) busy wait doesn't
                 // cause issues. If it did, we would create another thread to do the rest of this run
-                while (!reader.ready()) ;
-                //while (!reader.ready()) System.out.print("");
+                //while (!reader.ready()) ;
+                while (!reader.ready()) System.out.print("");
 
                 String line = reader.readLine();
                 String[] split = line.split(";");
@@ -84,28 +88,29 @@ public class BankListener extends Thread{
                 if (MessageEnum.parseCommand(split[0]) == MessageEnum.HOUSE) {
                     // Houses start with a 0 account balance
                     BankAccount account = new BankAccount(0, houseId);
+                    int port = Integer.parseInt(split[1]);
                     synchronized (houseList) {
-                        houseList.add(new Bank.SocketInfo(socket, writer, reader, houseId, "", account));
+                        houseList.add(new Bank.SocketInfo(socket, writer, reader, houseId, "", account, port));
                     }
                     synchronized (display) {
                         display.addHouse(houseId);
                     }
                     System.out.println("New house has logged in with id " + houseId);
-                    houseId += 1;
                     // Message house of successful login
                     writer.println(MessageEnum.LOGIN + ";" + houseId);
+                    houseId += 1;
                 } else {
                     BankAccount account = new BankAccount(INITIAL_BALANCE, userId);
                     synchronized (userList) {
-                        userList.add(new Bank.SocketInfo(socket, writer, reader, userId, split[1], account));
+                        userList.add(new Bank.SocketInfo(socket, writer, reader, userId, split[1], account, -1));
                     }
                     synchronized (display) {
                         display.addUser(userId, split[1], INITIAL_BALANCE);
                     }
                     System.out.println("New user has logged in with id " + userId);
-                    userId += 1;
                     // Message user of successful login
                     writer.println(MessageEnum.LOGIN + ";" + userId);
+                    userId += 1;
                 }
             }
             catch(Exception ex) {

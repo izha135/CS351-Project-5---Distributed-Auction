@@ -1,3 +1,15 @@
 A baseball;10;Just a baseball
-Another item;15;Some description
-The Mona Lisa;100;Just your average painting
+The Mona Lisa duplicate;100;Just your average painting
+Dancing Cactus;10;A small plastic saguaro cactus
+Inflatable Tube Man;100;Waves at everyone
+Sloth Costume;50;Hard to move
+Massive Gummy Bear;30;Tastes awful
+Frog Mona Lisa;25;Mona Lisa, but with a frog face
+Octopus Backpack;10;Likes to lend a hand
+Welwitchia;300;Plant native to the Sahara
+Duck Lamp;30;Quack
+Traffic Cone;10;A tall, orange cone
+Salad;2;Caesar salad
+Left Shoe;12;The right one is missing
+Pencil;1;0.9mm mechanical pencil
+Hand sanitizer;5;Kills 99.9% of bacteria

@@ -13,14 +13,12 @@ import common.Item;
 import common.MessageEnum;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class Bank{
     // The graphic display showing the actions happening within the bank
@@ -36,7 +34,7 @@ public class Bank{
     private static List<Item> itemList;
 
     public static void main(String[] args) {
-        int port = 3030;
+        int port = Integer.parseInt(args[0]);
 
         userList = new ArrayList<>();
         houseList = new ArrayList<>();
@@ -63,32 +61,37 @@ public class Bank{
             // Check every user's and house's reader for if they have input to be parsed
             boolean run = true;
             while(run) {
-                //System.out.print("");
-                for(int i = 0; i < userList.size(); i++) {
-                    SocketInfo socket = userList.get(i);
-                    if(socket.reader.ready()) {
-                        text = socket.reader.readLine();
-                        handleUserCommand(text);
+                System.out.print("");
+                try {
+                    for(int i = 0; i < userList.size(); i++) {
+                        SocketInfo socket = userList.get(i);
+                        if(socket.reader.ready()) {
+                            text = socket.reader.readLine();
+                            handleUserCommand(text);
+                        }
+                    }
+                    for(int i = 0; i < houseList.size(); i++) {
+                        SocketInfo socket = houseList.get(i);
+                        if(socket.reader.ready()) {
+                            text = socket.reader.readLine();
+                            handleHouseCommand(text);
+                        }
                     }
                 }
-                for(int i = 0; i < houseList.size(); i++) {
-                    SocketInfo socket = houseList.get(i);
-                    if(socket.reader.ready()) {
-                        text = socket.reader.readLine();
-                        handleHouseCommand(text);
-                    }
+                catch(IndexOutOfBoundsException ex) {
+                    // Just ignore it. This is a problem with sockets exiting
                 }
                 if(scan.ready()) {
                     String inputString = scan.readLine();
-                    if(inputString.equals("Stop")) {
+                    if(inputString.equalsIgnoreCase("Stop")) {
                         run = false;
                         listener.stopThread();
                     }
                 }
             }
         }
-        catch (Exception e) {
-            e.printStackTrace();
+        catch (IOException ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -123,6 +126,7 @@ public class Bank{
     private static void handleUserCommand(String text) {
         // Split the string on the delimiter ;
         String[] splitText = text.split(";");
+        System.out.println("User: " + text);
         // Parse the command, which is always the first string
         MessageEnum command = MessageEnum.parseCommand(splitText[0]);
         switch (command) {
@@ -146,6 +150,7 @@ public class Bank{
     private static void handleHouseCommand(String text) {
         // Split the string on the delimiter ;
         String[] splitText = text.split(";");
+        System.out.println("House: " + text);
         // Parse the command, which is always the first string
         MessageEnum command = MessageEnum.parseCommand(splitText[0]);
         switch (command) {
@@ -160,16 +165,18 @@ public class Bank{
                 double itemBid = Double.parseDouble(splitText[3]);
                 int itemId = Integer.parseInt(splitText[4]);
                 int previousHidBidUserId = Integer.parseInt(splitText[5]);
-                handleHouseValidBid(houseId, userId, itemBid, itemId, previousHidBidUserId);
+                double previousBid = Double.parseDouble(splitText[6]);
+                handleHouseValidBid(houseId, userId, itemBid, itemId, previousHidBidUserId, previousBid);
                 break;
             case AUCTION_ENDED:
                 // The item being bid for has now been sold
                 houseId = Integer.parseInt(splitText[1]);
-                int winningUser = Integer.parseInt(splitText[2]);
+                String itemName = splitText[2];
                 itemId = Integer.parseInt(splitText[3]);
                 itemBid = Double.parseDouble(splitText[4]);
-                String itemName = splitText[5];
-                handleHouseAuctionEnded(houseId, winningUser, itemId, itemBid, itemName);
+                int winningUser = Integer.parseInt(splitText[5]);
+                String itemDesc = splitText[6];
+                handleHouseAuctionEnded(houseId, itemName, itemId, itemBid, winningUser, itemDesc);
                 break;
             case EXIT:
                 houseId = Integer.parseInt(splitText[1]);
@@ -184,9 +191,11 @@ public class Bank{
         // Create and send a message with all of the house ids separated by ;
         String message = MessageEnum.HOUSE_LIST.toString();
         String hostName;
+        int port;
         for(int i = 0; i < houseList.size(); i++) {
-            hostName = houseList.get(i).socket.getInetAddress().getHostName();
-            message += ";" + houseList.get(i) +";" + hostName;
+            hostName = houseList.get(i).socket.getInetAddress().getHostAddress();
+            port = houseList.get(i).port;
+            message += ";" + houseList.get(i).id +";" + hostName + ";" + port;
         }
         PrintWriter userWriter = getUser(userId).writer;
         userWriter.println(message);
@@ -195,14 +204,19 @@ public class Bank{
     private static void handleUserExit(int userId) {
         boolean canExit = true;
 
+        if(getUser(userId) == null) {
+            System.out.println("Invalid exit request: User does not exist");
+            return;
+        }
+
         // Also check if the user is currently the highest bidder on some item
         BankAccount account = getUser(userId).account;
-        if(account.getBalance() != account.getRemainingBalance()) canExit = false;
+        if(Math.abs(account.getBalance() - account.getRemainingBalance()) >= 0.01) canExit = false;
 
         PrintWriter userWriter = getUser(userId).writer;
         if(canExit) {
             userWriter.println(MessageEnum.CAN_EXIT);
-            SocketInfo socketInfo = getHouse(userId);
+            SocketInfo socketInfo = getUser(userId);
             try {
                 socketInfo.socket.close();
             }
@@ -210,6 +224,7 @@ public class Bank{
                 e.printStackTrace();
             }
             userList.remove(socketInfo);
+            display.removeUser(userId);
         }
         else {
             userWriter.println(MessageEnum.ERROR + ";Cannot exit");
@@ -219,7 +234,7 @@ public class Bank{
     private static void handleHouseGetItemsFromBank(int houseId, int count) {
         // Construct a message with a list of items from the bank
         PrintWriter houseWriter = getHouse(houseId).writer;
-        String message = MessageEnum.ITEMS.toString();
+        String message = MessageEnum.ITEMS.toString() + ";" + houseId + ";" + count;
         for(int i = 0; i < count; i++) {
             if(itemList.size() == 0) {
                 break;
@@ -236,7 +251,7 @@ public class Bank{
     }
 
     private static void handleHouseValidBid(int houseId, int userId, double itemBid, int itemId,
-                                            int previousHidBidUserId) {
+                                            int previousHidBidUserId, double previousBid) {
         PrintWriter houseWriter = getHouse(houseId).writer;
         BankAccount account = getUser(userId).account;
 
@@ -245,34 +260,37 @@ public class Bank{
             display.updateHouseItem(houseId, itemId, getUser(userId).username, itemBid);
 
             // Bid should be accepted
-            message = MessageEnum.ACCEPT_BID + ";" + userId + ";" + itemBid;
+            message = MessageEnum.ACCEPT_BID + ";" + userId + ";" + itemId + ";" + itemBid;
 
             SocketInfo newUser = getUser(userId);
             SocketInfo oldUser = getUser(previousHidBidUserId);
 
             newUser.account.removeFunds(itemBid);
-            oldUser.account.addFunds(itemBid);
+            if (oldUser != null) oldUser.account.addFunds(previousBid);
 
             display.changeUserRemaining(userId, newUser.account.getRemainingBalance());
+            if (oldUser != null) display.changeUserRemaining(previousHidBidUserId,
+                                                             oldUser.account.getRemainingBalance());
 
             // Inform all other users of them being outbid
             for(int i = 0; i < userList.size(); i++) {
                 SocketInfo user = userList.get(i);
                 if(user.id != userId) {
                     PrintWriter writer = user.writer;
-                    writer.println(MessageEnum.OUTBID + ";" + houseId + ";" + itemId + ";" + userId + ";" + itemBid);
+                    writer.println(MessageEnum.OUTBID + ";" + houseId + ";" + itemId + ";" + userId + ";" + itemBid+ ";"
+                                   + previousHidBidUserId);
                 }
             }
         }
         else {
             // Bid should be rejected
-            message = MessageEnum.REJECT_BID + ";" + userId + ";" + itemBid;
+            message = MessageEnum.REJECT_BID + ";" + userId + ";" + itemId;
         }
         houseWriter.println(message);
     }
 
-    private static void handleHouseAuctionEnded(int houseId, int winningUser, int itemId, double itemBid,
-                                                String itemName) {
+    private static void handleHouseAuctionEnded(int houseId, String itemName, int itemId, double itemBid,
+                                                int winningUser, String itemDesc) {
         display.removeHouseItem(houseId, itemId);
 
         PrintWriter houseWriter = getHouse(houseId).writer;
@@ -288,17 +306,17 @@ public class Bank{
         for(int i = 0; i < userList.size(); i++) {
             PrintWriter userWriter = userList.get(i).writer;
             // Message item winner of their winnings
-            /*if(userList.get(i).id == winningUser) {
-                userWriter.println(MessageEnum.WINNER + ";" + itemName + ";" + houseId + ";" + itemId
+            if(userList.get(i).id == winningUser) {
+                userWriter.println(MessageEnum.WINNER + ";" + houseId + ";" + itemName + ";" + itemId
                         + ";" + itemBid);
-            }*/
+            }
             // Message all other users that this item has been sold (cannot bid on it anymore)
-            //else {
-                userWriter.println(MessageEnum.ITEM_WON + ";" + itemName + ";" + houseId + ";" + itemId +
+            else {
+                userWriter.println(MessageEnum.ITEM_WON + ";" + houseId + ";" + itemName + ";" + itemId + ";" +
                         getUser(winningUser).username + ";" + itemBid);
-            //}
+            }
         }
-        houseWriter.println(MessageEnum.REMOVE_ITEM + ";" + itemId);
+        //houseWriter.println(MessageEnum.REMOVE_ITEM + ";" + itemId);
     }
 
     /**
@@ -347,6 +365,7 @@ public class Bank{
                 itemId += 1;
                 itemList.add(item);
             }
+            Collections.shuffle(itemList);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -379,15 +398,17 @@ public class Bank{
         final int id;
         final String username;
         final BankAccount account;
+        final int port;
 
         public SocketInfo(Socket socket, PrintWriter writer, BufferedReader reader, int id, String username,
-                          BankAccount account) {
+                          BankAccount account, int port) {
             this.socket = socket;
             this.writer = writer;
             this.reader = reader;
             this.id = id;
             this.username = username;
             this.account = account;
+            this.port = port;
         }
     }
 }
