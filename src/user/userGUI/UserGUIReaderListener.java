@@ -8,6 +8,12 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.List;
 
+/**
+ * SHOULD BE DEPRECATED: has basically the same function as the
+ * UserGUIReaderListener, except using its own thread with a very
+ * bad idea of a while(true) loop...(constantly checking the sockets that
+ * may result in poor performance)
+ */
 public class UserGUIReaderListener extends Thread {
     private Socket socket;
     private BufferedReader reader;

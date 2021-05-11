@@ -7,6 +7,17 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
+/**
+ * A wrapper class that contains all the GUI elements to be updated
+ * throughout the user program (creates custom labels, but the original
+ * labels might have been better linked to the custom labels themselves for
+ * better coupling...)
+ *
+ * There's simple methods to update labels and to calculate the remaining
+ * balance and blocked amount for the user
+ *
+ * The methods below should be pretty straightforward (no comments...)
+ */
 public class GuiStuff {
     private Label usernameLabel;
     private Label userIDAccountLabel;

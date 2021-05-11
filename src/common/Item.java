@@ -3,6 +3,16 @@ package common;
 import java.io.Serializable;
 import java.util.Objects;
 
+/**
+ * REMOVE SERIALIZABLE
+ *
+ * The class that encompasses everything related to storing an item for the user
+ *
+ * Contains the item name, item ID, house ID from where item is gotten from,
+ * the minimum bid amount for the item, and some item description (we decided
+ * the item description were going to be brief for our list, but I think the
+ * bank will take in some item list and the items can vary from that given file)
+ */
 public class Item implements Serializable {
     private String itemName;
     private int itemId;

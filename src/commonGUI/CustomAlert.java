@@ -2,6 +2,11 @@ package commonGUI;
 
 import javafx.scene.control.Alert;
 
+/**
+ * A class made to make initializing and showing some alert a lot easier --
+ * some defined arguments to be displayed with the alert (alert type, title
+ * of the alert, and the context text of the alert)
+ */
 public class CustomAlert extends Alert {
     private String titleAlert;
     private String contextTextAlert;
@@ -18,6 +23,7 @@ public class CustomAlert extends Alert {
         this.contextTextAlert = contextTextAlert;
     }
 
+    // only used for testing purposes...
     public Runnable showAlert() {
         this.show();
         return null;

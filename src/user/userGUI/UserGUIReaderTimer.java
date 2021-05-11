@@ -10,6 +10,15 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+/**
+ * Replaced the UserGUIReaderListener: will actively check to see if there
+ * are any commands received (from the bank and house) and add them to the list
+ * of commands (FullMessage object) to process every 250 milliseconds and
+ * execute any commands (corresponding methods given above), if there are
+ * any, and also checks if the exit conditions for the user has been met
+ * (logic condensed to if the bank allows the user to exit since the bank has
+ * information of any bids that are still happening for ALL users)
+ */
 public class UserGUIReaderTimer {
     private Timer timer;
     private Socket socket;

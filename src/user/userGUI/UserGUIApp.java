@@ -8,6 +8,15 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
+/**
+ * The application part containing the main for the user GUI
+ *
+ * Standard boiler plate to load the FXML file and set up the stage
+ *
+ * IMPORTANT: the window CANNOT be close normally and has to verify with the
+ * network before it can be closed (as part of the program without force
+ * closing it...)
+ */
 public class UserGUIApp extends Application {
     public static String bankHostNameInput;
     public static int bankPort;
@@ -36,29 +45,6 @@ public class UserGUIApp extends Application {
         }
     }
 
-//    public void start(Stage primaryStage) {
-//        try {
-//            Platform.runLater(() -> {
-//                FXMLLoader loader = new FXMLLoader();
-//                BorderPane root =
-//                        (BorderPane) loader.load(
-//                                getClass().getResource(
-//                                        "UserGUI.fxml").openStream());
-//                primaryStage.setScene(new Scene(root));
-//                primaryStage.show();
-//                primaryStage.setTitle("User Window");
-//
-//                // DISABLED the close button on the window
-//                primaryStage.setOnCloseRequest(this::preventCloseWindow);
-//
-//                root.requestFocus();
-//            });
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            System.exit(1);
-//        }
-//    }
-
     private void preventCloseWindow(Event event) {
         event.consume();
     }
@@ -74,17 +60,9 @@ public class UserGUIApp extends Application {
         username = args[2];
 
         launch(args);
-//        UserGUIApp userGUIApp = new UserGUIApp();
-//        userGUIApp.createDisplay();
-
-//        SwingUtilities.invokeLater(new Runnable() {
-//            @Override
-//            public void run() {
-//
-//            }
-//        });
     }
 
+    // just trying out stuff...
     public void createDisplay() {
         //launch();
         Platform.runLater(() -> {
@@ -92,15 +70,4 @@ public class UserGUIApp extends Application {
             start(stage);
         });
     }
-
-//    private void newSwingStart() {
-//        JFrame jFrame = new JFrame("User Program");
-//        JFXPanel jfxPanel = new JFXPanel();
-//
-//        jFrame.add(jfxPanel);
-//
-//        Platform.runLater(() -> {
-//
-//        });
-//    }
 }

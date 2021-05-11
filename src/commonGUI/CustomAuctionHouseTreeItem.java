@@ -5,6 +5,14 @@ import javafx.scene.control.TreeItem;
 
 import java.util.Objects;
 
+/**
+ * Custom tree item for a given auction house (mostly used as a marker and
+ * with custom equals() to fetch the same GUI element every time the display
+ * is refreshed...)
+ *
+ * Holds the corresponding house ID and the actual Auction House object
+ * (house ID could have been removed since it's linked with the house object...)
+ */
 public class CustomAuctionHouseTreeItem extends TreeItem<String> {
     private int houseID;
     private AuctionHouseUser auctionHouseUser;

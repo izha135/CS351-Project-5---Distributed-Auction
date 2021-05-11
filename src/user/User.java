@@ -10,6 +10,10 @@ import java.util.List;
 
 import static common.MessageEnum.*;
 
+/**
+ * Leftover class when first starting up the project (everything was moved to
+ * the userGUI package when work on the user GUI began...)
+ */
 public class User {
     private String userName;
     private static int userID;
